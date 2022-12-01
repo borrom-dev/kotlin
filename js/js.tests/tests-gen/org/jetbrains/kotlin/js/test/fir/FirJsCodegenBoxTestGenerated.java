@@ -12870,12 +12870,6 @@ public class FirJsCodegenBoxTestGenerated extends AbstractFirJsCodegenBoxTest {
         }
 
         @Test
-        @TestMetadata("objectInEnum.kt")
-        public void testObjectInEnum() throws Exception {
-            runTest("compiler/testData/codegen/box/enum/objectInEnum.kt");
-        }
-
-        @Test
         @TestMetadata("ordinal.kt")
         public void testOrdinal() throws Exception {
             runTest("compiler/testData/codegen/box/enum/ordinal.kt");
@@ -15245,12 +15239,6 @@ public class FirJsCodegenBoxTestGenerated extends AbstractFirJsCodegenBoxTest {
             }
 
             @Test
-            @TestMetadata("kt48445.kt")
-            public void testKt48445() throws Exception {
-                runTest("compiler/testData/codegen/box/inference/builderInference/kt48445.kt");
-            }
-
-            @Test
             @TestMetadata("kt48633.kt")
             public void testKt48633() throws Exception {
                 runTest("compiler/testData/codegen/box/inference/builderInference/kt48633.kt");
@@ -15260,12 +15248,6 @@ public class FirJsCodegenBoxTestGenerated extends AbstractFirJsCodegenBoxTest {
             @TestMetadata("kt49887.kt")
             public void testKt49887() throws Exception {
                 runTest("compiler/testData/codegen/box/inference/builderInference/kt49887.kt");
-            }
-
-            @Test
-            @TestMetadata("kt50520.kt")
-            public void testKt50520() throws Exception {
-                runTest("compiler/testData/codegen/box/inference/builderInference/kt50520.kt");
             }
 
             @Test
