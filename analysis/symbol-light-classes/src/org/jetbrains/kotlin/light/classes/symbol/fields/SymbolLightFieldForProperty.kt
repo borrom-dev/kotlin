@@ -106,7 +106,7 @@ internal class SymbolLightFieldForProperty private constructor(
         in LazyModifiersBox.VISIBILITY_MODIFIERS -> LazyModifiersBox.computeVisibilityForMember(ktModule, propertySymbolPointer)
         in LazyModifiersBox.MODALITY_MODIFIERS -> {
             val modality = withPropertySymbol { propertySymbol ->
-                if (propertySymbol.isVal) {
+                if (propertySymbol.isVal || propertySymbol.isDelegatedProperty) {
                     PsiModifier.FINAL
                 } else {
                     propertySymbol.computeSimpleModality()?.takeIf {
