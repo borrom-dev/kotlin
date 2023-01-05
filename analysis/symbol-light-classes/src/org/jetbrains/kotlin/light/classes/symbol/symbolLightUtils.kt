@@ -31,6 +31,7 @@ import org.jetbrains.kotlin.light.classes.symbol.annotations.*
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.SpecialNames
 import org.jetbrains.kotlin.psi.KtTypeParameterListOwner
+import org.jetbrains.org.objectweb.asm.Type
 import java.util.*
 
 internal fun <L : Any> L.invalidAccess(): Nothing =
@@ -128,23 +129,14 @@ internal fun KtAnalysisSession.getTypeNullability(ktType: KtType): NullabilityTy
         val subtypeOfNullableSuperType = ktType.symbol.upperBounds.all { upperBound -> upperBound.canBeNull }
         return if (!subtypeOfNullableSuperType) NullabilityType.NotNull else NullabilityType.Unknown
     }
-    if (ktType !is KtClassType) return NullabilityType.NotNull
-
-    if (!ktType.isPrimitive) {
-        return ktType.nullabilityType
-    }
-
     if (ktType !is KtNonErrorClassType) return NullabilityType.NotNull
     if (ktType.ownTypeArguments.any { it.type is KtClassErrorType }) return NullabilityType.NotNull
     if (ktType.classId.shortClassName.asString() == SpecialNames.ANONYMOUS_STRING) return NullabilityType.NotNull
 
-    val canonicalSignature = ktType.mapTypeToJvmType().descriptor
-
-    if (canonicalSignature == "[L<error>;") return NullabilityType.NotNull
-
-    val isNotPrimitiveType = canonicalSignature.startsWith("L") || canonicalSignature.startsWith("[")
-
-    return if (isNotPrimitiveType) NullabilityType.NotNull else NullabilityType.Unknown
+    return when (ktType.mapTypeToJvmType().sort) {
+        Type.BOOLEAN, Type.CHAR, Type.BYTE, Type.SHORT, Type.INT, Type.FLOAT, Type.LONG, Type.DOUBLE -> NullabilityType.Unknown
+        else -> ktType.nullabilityType
+    }
 }
 
 internal val KtType.isUnit get() = isClassTypeWithClassId(DefaultTypeClassIds.UNIT)
