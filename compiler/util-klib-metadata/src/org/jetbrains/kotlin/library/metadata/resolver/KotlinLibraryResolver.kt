@@ -43,11 +43,11 @@ val TopologicalLibraryOrder: LibraryOrder = { input ->
         if (visited.contains(node)) return
         if (tempMarks.contains(node)) error("Cyclic dependency in library graph for: ${node.library.libraryName}")
         tempMarks.add(node)
+        visited.add(node)
+        result += node
         node.resolvedDependencies.forEach {
             visit(it, result)
         }
-        visited.add(node)
-        result += node
     }
 
     input.forEach next@{
@@ -55,5 +55,5 @@ val TopologicalLibraryOrder: LibraryOrder = { input ->
         visit(it, sorted)
     }
 
-    sorted
+    sorted.reversed()
 }

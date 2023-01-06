@@ -239,7 +239,7 @@ fun loadIr(
             val mainModuleLib = allDependencies.find { it.libraryFile.canonicalPath == mainPath }
                 ?: error("No module with ${mainModule.libPath} found")
             val moduleDescriptor = depsDescriptors.getModuleDescriptor(mainModuleLib)
-            val sortedDependencies = sortDependencies(depsDescriptors.descriptors)
+            val sortedDependencies = sortDependencies(depsDescriptors.descriptors).reversed()
             val friendModules = mapOf(mainModuleLib.uniqueName to depsDescriptors.friendDependencies.map { it.library.uniqueName })
 
             return getIrModuleInfoForKlib(
@@ -557,7 +557,11 @@ class ModulesStructure(
     // TODO: these are roughly equivalent to KlibResolvedModuleDescriptorsFactoryImpl. Refactor me.
     val descriptors = mutableMapOf<KotlinLibrary, ModuleDescriptorImpl>()
 
-    fun getModuleDescriptor(current: KotlinLibrary): ModuleDescriptorImpl = descriptors.getOrPut(current) {
+    fun getModuleDescriptor(current: KotlinLibrary): ModuleDescriptorImpl {
+        if (current in descriptors) {
+            return descriptors.getValue(current)
+        }
+
         val isBuiltIns = current.unresolvedDependencies.isEmpty()
 
         val lookupTracker = compilerConfiguration[CommonConfigurationKeys.LOOKUP_TRACKER] ?: LookupTracker.DO_NOTHING
@@ -571,10 +575,12 @@ class ModulesStructure(
         )
         if (isBuiltIns) runtimeModule = md
 
+        descriptors[current] = md
+
         val dependencies = moduleDependencies.getValue(current).map { getModuleDescriptor(it) }
         md.setDependencies(listOf(md) + dependencies)
 
-        md
+        return md
     }
 
     val builtInModuleDescriptor =

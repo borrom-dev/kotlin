@@ -11,6 +11,8 @@ import org.jetbrains.kotlin.library.KotlinLibraryProperResolverWithAttributes
 import org.jetbrains.kotlin.library.UnresolvedLibrary
 import org.jetbrains.kotlin.library.impl.createKotlinLibraryComponents
 import org.jetbrains.kotlin.library.metadata.resolver.KotlinLibraryResolveResult
+import org.jetbrains.kotlin.library.metadata.resolver.impl.KotlinLibraryResolverResultImpl
+import org.jetbrains.kotlin.library.metadata.resolver.impl.KotlinResolvedLibraryImpl
 import org.jetbrains.kotlin.library.metadata.resolver.impl.libraryResolver
 import org.jetbrains.kotlin.util.Logger
 
@@ -54,5 +56,10 @@ fun jsResolveLibraries(libraries: Collection<String>, repositories: Collection<S
             noDefaultLibs = true,
             noEndorsedLibs = true
         )
+
+    resolvedLibraries.forEach { kotlinLibrary, packageAccessHandler ->
+        (packageAccessHandler as KotlinResolvedLibraryImpl)._resolvedDependencies = resolvedLibraries.getFullResolvedList().filter { it.library != kotlinLibrary }.toMutableList()
+    }
+
     return resolvedLibraries
 }
