@@ -11,8 +11,7 @@ import org.jetbrains.kotlin.library.KotlinLibraryProperResolverWithAttributes
 import org.jetbrains.kotlin.library.UnresolvedLibrary
 import org.jetbrains.kotlin.library.impl.createKotlinLibraryComponents
 import org.jetbrains.kotlin.library.metadata.resolver.KotlinLibraryResolveResult
-import org.jetbrains.kotlin.library.metadata.resolver.impl.KotlinLibraryResolverResultImpl
-import org.jetbrains.kotlin.library.metadata.resolver.impl.KotlinResolvedLibraryImpl
+import org.jetbrains.kotlin.library.metadata.resolver.KotlinLibraryResolver
 import org.jetbrains.kotlin.library.metadata.resolver.impl.libraryResolver
 import org.jetbrains.kotlin.util.Logger
 
@@ -37,7 +36,34 @@ class JsLibraryResolver(
 }
 
 // TODO: This is a temporary set of library resolver policies for js compiler.
-fun jsResolveLibraries(libraries: Collection<String>, repositories: Collection<String>, logger: Logger): KotlinLibraryResolveResult {
+fun jsResolveLibraries(libraries: Collection<String>, repositories: Collection<String>, logger: Logger): KotlinLibraryResolveResult =
+    jsResolveLibraries(
+        libraries,
+        repositories,
+        logger
+    ) { libraryResolver ->
+        libraryResolver::resolveWithDependencies
+    }
+
+fun jsResolveLibrariesWithoutDependencies(
+    libraries: Collection<String>,
+    repositories: Collection<String>,
+    logger: Logger
+): List<KotlinLibrary> =
+    jsResolveLibraries(
+        libraries,
+        repositories,
+        logger
+    ) { libraryResolver ->
+        libraryResolver::resolveWithoutDependencies
+    }
+
+private fun <T> jsResolveLibraries(
+    libraries: Collection<String>,
+    repositories: Collection<String>,
+    logger: Logger,
+    resolver: (KotlinLibraryResolver<KotlinLibrary>) -> ((unresolvedLibraries: List<UnresolvedLibrary>, noStdLib: Boolean, noDefaultLibs: Boolean, noEndorsedLibs: Boolean) -> T)
+): T {
     val unresolvedLibraries = libraries.map { UnresolvedLibrary(it, null) }
     val libraryAbsolutePaths = libraries.map { File(it).absolutePath }
     // Configure the resolver to only work with absolute paths for now.
@@ -49,17 +75,10 @@ fun jsResolveLibraries(libraries: Collection<String>, repositories: Collection<S
         skipCurrentDir = false,
         logger = logger
     ).libraryResolver()
-    val resolvedLibraries =
-        libraryResolver.resolveWithDependencies(
-            unresolvedLibraries = unresolvedLibraries,
-            noStdLib = true,
-            noDefaultLibs = true,
-            noEndorsedLibs = true
-        )
-
-//    resolvedLibraries.forEach { kotlinLibrary, packageAccessHandler ->
-//        (packageAccessHandler as KotlinResolvedLibraryImpl)._resolvedDependencies = resolvedLibraries.getFullResolvedList().filter { it.library != kotlinLibrary }.toMutableList()
-//    }
-
-    return resolvedLibraries
+    return resolver(libraryResolver)(
+        /* unresolvedLibraries = */unresolvedLibraries,
+        /* noStdLib = */true,
+        /* noDefaultLibs = */true,
+        /* noEndorsedLibs = */true
+    )
 }

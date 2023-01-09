@@ -38,10 +38,17 @@ class KotlinLibraryResolverImpl<L: KotlinLibrary> internal constructor(
         noStdLib: Boolean,
         noDefaultLibs: Boolean,
         noEndorsedLibs: Boolean
+    ) = resolveWithoutDependencies(unresolvedLibraries, noStdLib, noDefaultLibs, noEndorsedLibs)
+        .resolveDependencies()
+
+    override fun resolveWithoutDependencies(
+        unresolvedLibraries: List<UnresolvedLibrary>,
+        noStdLib: Boolean,
+        noDefaultLibs: Boolean,
+        noEndorsedLibs: Boolean
     ) = findLibraries(unresolvedLibraries, noStdLib, noDefaultLibs, noEndorsedLibs)
-            .leaveDistinct()
-            .omitDuplicateNames()
-            .resolveDependencies()
+        .leaveDistinct()
+        .omitDuplicateNames()
 
     /**
      * Returns the list of libraries based on [libraryNames], [noStdLib], [noDefaultLibs] and [noEndorsedLibs] criteria.

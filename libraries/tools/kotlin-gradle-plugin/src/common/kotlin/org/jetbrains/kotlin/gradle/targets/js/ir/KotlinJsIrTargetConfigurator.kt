@@ -97,7 +97,7 @@ open class KotlinJsIrTargetConfigurator() :
 
     override fun defineConfigurationsForTarget(target: KotlinJsIrTarget) {
         super.defineConfigurationsForTarget(target)
-        implementationToApiElements(target)
+//        implementationToApiElements(target)
 
         if (target.isMpp!!) return
 

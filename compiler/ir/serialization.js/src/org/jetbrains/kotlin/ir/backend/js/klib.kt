@@ -129,7 +129,7 @@ fun generateKLib(
 ) {
     val files = (depsDescriptors.mainModule as MainModule.SourceFiles).files.map(::KtPsiSourceFile)
     val configuration = depsDescriptors.compilerConfiguration
-    val allDependencies = depsDescriptors.allDependencies.map { it.library }
+    val allDependencies = depsDescriptors.allDependencies.map { it }
     val messageLogger = configuration.irMessageLogger
 
     serializeModuleIntoKlib(
@@ -203,7 +203,7 @@ fun loadIr(
     val project = depsDescriptors.project
     val mainModule = depsDescriptors.mainModule
     val configuration = depsDescriptors.compilerConfiguration
-    val allDependencies = depsDescriptors.allDependencies.map { it.library }
+    val allDependencies = depsDescriptors.allDependencies.map { it }
     val errorPolicy = configuration.get(JSConfigurationKeys.ERROR_TOLERANCE_POLICY) ?: ErrorTolerancePolicy.DEFAULT
     val messageLogger = configuration.irMessageLogger
     val partialLinkageEnabled = configuration[JSConfigurationKeys.PARTIAL_LINKAGE] ?: false
@@ -216,7 +216,7 @@ fun loadIr(
             assert(filesToLoad == null)
             val psi2IrContext = preparePsi2Ir(depsDescriptors, errorPolicy, symbolTable, partialLinkageEnabled)
             val friendModules =
-                mapOf(psi2IrContext.moduleDescriptor.name.asString() to depsDescriptors.friendDependencies.map { it.library.uniqueName })
+                mapOf(psi2IrContext.moduleDescriptor.name.asString() to depsDescriptors.friendDependencies.map { it.uniqueName })
 
             return getIrModuleInfoForSourceFiles(
                 psi2IrContext,
@@ -237,7 +237,7 @@ fun loadIr(
                 ?: error("No module with ${mainModule.libPath} found")
             val moduleDescriptor = depsDescriptors.getModuleDescriptor(mainModuleLib)
             val sortedDependencies = sortDependencies(depsDescriptors.moduleDependencies)
-            val friendModules = mapOf(mainModuleLib.uniqueName to depsDescriptors.friendDependencies.map { it.library.uniqueName })
+            val friendModules = mapOf(mainModuleLib.uniqueName to depsDescriptors.friendDependencies.map { it.uniqueName })
 
             return getIrModuleInfoForKlib(
                 moduleDescriptor,
@@ -475,18 +475,16 @@ class ModulesStructure(
     friendDependenciesPaths: Collection<String>,
 ) {
 
-    val allResolvedDependencies = jsResolveLibraries(
+    val allDependencies = jsResolveLibrariesWithoutDependencies(
         dependencies,
         compilerConfiguration[JSConfigurationKeys.REPOSITORIES] ?: emptyList(),
         compilerConfiguration.resolverLogger
     )
 
-    val allDependencies = allResolvedDependencies.getFullResolvedList()
-
     val friendDependencies = allDependencies.run {
         val friendAbsolutePaths = friendDependenciesPaths.map { File(it).canonicalPath }
         filter {
-            it.library.libraryFile.absolutePath in friendAbsolutePaths
+            it.libraryFile.absolutePath in friendAbsolutePaths
         }
     }
 
@@ -497,7 +495,7 @@ class ModulesStructure(
         }.toMap()
     }
 
-    private val builtInsDep = allDependencies.find { it.library.isBuiltIns }
+    private val builtInsDep = allDependencies.find { it.isBuiltIns }
 
     class JsFrontEndResult(val jsAnalysisResult: AnalysisResult, val hasErrors: Boolean) {
         val moduleDescriptor: ModuleDescriptor
@@ -509,7 +507,11 @@ class ModulesStructure(
 
     lateinit var jsFrontEndResult: JsFrontEndResult
 
-    fun runAnalysis(errorPolicy: ErrorTolerancePolicy, analyzer: AbstractAnalyzerWithCompilerReport, analyzerFacade: AbstractTopDownAnalyzerFacadeForJS) {
+    fun runAnalysis(
+        errorPolicy: ErrorTolerancePolicy,
+        analyzer: AbstractAnalyzerWithCompilerReport,
+        analyzerFacade: AbstractTopDownAnalyzerFacadeForJS
+    ) {
         require(mainModule is MainModule.SourceFiles)
         val files = mainModule.files
 
@@ -518,8 +520,8 @@ class ModulesStructure(
                 files,
                 project,
                 compilerConfiguration,
-                allModuleDescriptors,
-                friendDependencies.map { getModuleDescriptor(it.library) },
+                allDependencies.map { getModuleDescriptor(it) },
+                friendDependencies.map { getModuleDescriptor(it) },
                 analyzer.targetEnvironment,
                 thisIsBuiltInsModule = builtInModuleDescriptor == null,
                 customBuiltInsModule = builtInModuleDescriptor
@@ -584,15 +586,15 @@ class ModulesStructure(
 
         descriptors[current] = md
 
-//        val dependencies = moduleDependencies.getValue(current).map { getModuleDescriptor(it) }
-//        md.setDependencies(listOf(md) + dependencies)
+        val dependencies = allDependencies.map { getModuleDescriptor(it) }
+        md.setDependencies(dependencies)
 
         return md
     }
 
     val builtInModuleDescriptor =
         if (builtInsDep != null)
-            getModuleDescriptor(builtInsDep.library)
+            getModuleDescriptor(builtInsDep)
         else
             null // null in case compiling builtInModule itself
 }

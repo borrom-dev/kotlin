@@ -19,6 +19,13 @@ interface KotlinLibraryResolver<L: KotlinLibrary> {
         noDefaultLibs: Boolean = false,
         noEndorsedLibs: Boolean = false
     ): KotlinLibraryResolveResult
+
+    fun resolveWithoutDependencies(
+        unresolvedLibraries: List<UnresolvedLibrary>,
+        noStdLib: Boolean = false,
+        noDefaultLibs: Boolean = false,
+        noEndorsedLibs: Boolean = false
+    ): List<KotlinLibrary>
 }
 
 interface KotlinLibraryResolveResult {
