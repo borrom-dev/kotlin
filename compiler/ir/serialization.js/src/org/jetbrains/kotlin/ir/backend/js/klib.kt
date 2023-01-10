@@ -239,7 +239,7 @@ fun loadIr(
             val mainModuleLib = allDependencies.find { it.libraryFile.canonicalPath == mainPath }
                 ?: error("No module with ${mainModule.libPath} found")
             val moduleDescriptor = depsDescriptors.getModuleDescriptor(mainModuleLib)
-            val sortedDependencies = sortDependencies(depsDescriptors.descriptors).reversed()
+            val sortedDependencies = sortDependencies(depsDescriptors.descriptors)
             val friendModules = mapOf(mainModuleLib.uniqueName to depsDescriptors.friendDependencies.map { it.library.uniqueName })
 
             return getIrModuleInfoForKlib(
@@ -521,7 +521,7 @@ class ModulesStructure(
                 files,
                 project,
                 compilerConfiguration,
-                allDependencies.map { getModuleDescriptor(it.library) },
+                allModuleDescriptors,
                 friendDependencies.map { getModuleDescriptor(it.library) },
                 analyzer.targetEnvironment,
                 thisIsBuiltInsModule = builtInModuleDescriptor == null,
@@ -557,6 +557,16 @@ class ModulesStructure(
     // TODO: these are roughly equivalent to KlibResolvedModuleDescriptorsFactoryImpl. Refactor me.
     val descriptors = mutableMapOf<KotlinLibrary, ModuleDescriptorImpl>()
 
+    val allModuleDescriptors = run {
+        val descriptors = allDependencies.map { getModuleDescriptor(it.library) }
+
+        descriptors.forEach { descriptor ->
+            descriptor.setDependencies(descriptors)
+        }
+
+        descriptors
+    }
+
     fun getModuleDescriptor(current: KotlinLibrary): ModuleDescriptorImpl {
         if (current in descriptors) {
             return descriptors.getValue(current)
@@ -577,8 +587,8 @@ class ModulesStructure(
 
         descriptors[current] = md
 
-        val dependencies = moduleDependencies.getValue(current).map { getModuleDescriptor(it) }
-        md.setDependencies(listOf(md) + dependencies)
+//        val dependencies = moduleDependencies.getValue(current).map { getModuleDescriptor(it) }
+//        md.setDependencies(listOf(md) + dependencies)
 
         return md
     }

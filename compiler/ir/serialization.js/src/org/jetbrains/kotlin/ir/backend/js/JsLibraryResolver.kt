@@ -57,9 +57,9 @@ fun jsResolveLibraries(libraries: Collection<String>, repositories: Collection<S
             noEndorsedLibs = true
         )
 
-    resolvedLibraries.forEach { kotlinLibrary, packageAccessHandler ->
-        (packageAccessHandler as KotlinResolvedLibraryImpl)._resolvedDependencies = resolvedLibraries.getFullResolvedList().filter { it.library != kotlinLibrary }.toMutableList()
-    }
+//    resolvedLibraries.forEach { kotlinLibrary, packageAccessHandler ->
+//        (packageAccessHandler as KotlinResolvedLibraryImpl)._resolvedDependencies = resolvedLibraries.getFullResolvedList().filter { it.library != kotlinLibrary }.toMutableList()
+//    }
 
     return resolvedLibraries
 }
