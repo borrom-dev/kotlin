@@ -97,12 +97,14 @@ class Fir2IrDeclarationStorage(
     // We've got FIR declarations only for $1 and $3, but we've got a fake override for $2 in IR
     // and just to simplify things we create a synthetic FIR for $2, while it can't be referenced from other FIR nodes.
     //
-    // But when we binding overrides for $3, we want it had $2 ad it's overridden,
+    // But when we're binding overrides for $3, we want it had $2 ad it's overridden,
     // so remember that in class B there's a fake override $2 for real $1.
     //
-    // Thus we may obtain it by fakeOverridesInClass[ir(B)][fir(A::foo)] -> fir(B::foo)
+    // Thus, we may obtain it by fakeOverridesInClass[ir(B)][fir(A::foo)] -> fir(B::foo)
     private val fakeOverridesInClass: MutableMap<IrClass, MutableMap<FirCallableDeclaration, FirCallableDeclaration>> =
         dependentStorages.map { it.fakeOverridesInClass }.fold(mutableMapOf()) { result, map ->
+            // Note: merge is necessary here, because sometimes (see testFakeOverridesInPlatformModule)
+            // we have to match fake override in platform class with overridden fake overrides in common class
             result.putAll(map)
             result
         }
