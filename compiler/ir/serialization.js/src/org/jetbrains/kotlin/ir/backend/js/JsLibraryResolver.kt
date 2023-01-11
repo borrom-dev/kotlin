@@ -37,33 +37,17 @@ class JsLibraryResolver(
 
 // TODO: This is a temporary set of library resolver policies for js compiler.
 fun jsResolveLibraries(libraries: Collection<String>, repositories: Collection<String>, logger: Logger): KotlinLibraryResolveResult =
-    jsResolveLibraries(
+    jsResolveLibrariesWithoutDependencies(
         libraries,
         repositories,
         logger
-    ) { libraryResolver ->
-        libraryResolver::resolveWithDependencies
-    }
+    ).resolveWithDependencies()
 
 fun jsResolveLibrariesWithoutDependencies(
     libraries: Collection<String>,
     repositories: Collection<String>,
     logger: Logger
-): List<KotlinLibrary> =
-    jsResolveLibraries(
-        libraries,
-        repositories,
-        logger
-    ) { libraryResolver ->
-        libraryResolver::resolveWithoutDependencies
-    }
-
-private fun <T> jsResolveLibraries(
-    libraries: Collection<String>,
-    repositories: Collection<String>,
-    logger: Logger,
-    resolver: (KotlinLibraryResolver<KotlinLibrary>) -> ((unresolvedLibraries: List<UnresolvedLibrary>, noStdLib: Boolean, noDefaultLibs: Boolean, noEndorsedLibs: Boolean) -> T)
-): T {
+): JsResolution {
     val unresolvedLibraries = libraries.map { UnresolvedLibrary(it, null) }
     val libraryAbsolutePaths = libraries.map { File(it).absolutePath }
     // Configure the resolver to only work with absolute paths for now.
@@ -75,10 +59,25 @@ private fun <T> jsResolveLibraries(
         skipCurrentDir = false,
         logger = logger
     ).libraryResolver()
-    return resolver(libraryResolver)(
-        /* unresolvedLibraries = */unresolvedLibraries,
-        /* noStdLib = */true,
-        /* noDefaultLibs = */true,
-        /* noEndorsedLibs = */true
+
+    return JsResolution(
+        libraryResolver,
+        libraryResolver.resolveWithoutDependencies(
+            unresolvedLibraries = unresolvedLibraries,
+            noStdLib = true,
+            noDefaultLibs = true,
+            noEndorsedLibs = true
+        )
     )
+}
+
+class JsResolution(
+    private val libraryResolver: KotlinLibraryResolver<KotlinLibrary>,
+    val libraries: List<KotlinLibrary>
+) {
+    fun resolveWithDependencies(): KotlinLibraryResolveResult {
+        return with(libraryResolver) {
+            libraries.resolveDependencies()
+        }
+    }
 }

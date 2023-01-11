@@ -475,11 +475,14 @@ class ModulesStructure(
     friendDependenciesPaths: Collection<String>,
 ) {
 
-    val allDependencies = jsResolveLibrariesWithoutDependencies(
+    val allDependenciesResolution = jsResolveLibrariesWithoutDependencies(
         dependencies,
         compilerConfiguration[JSConfigurationKeys.REPOSITORIES] ?: emptyList(),
         compilerConfiguration.resolverLogger
     )
+
+    val allDependencies: List<KotlinLibrary>
+        get() = allDependenciesResolution.libraries
 
     val friendDependencies = allDependencies.run {
         val friendAbsolutePaths = friendDependenciesPaths.map { File(it).canonicalPath }
@@ -488,8 +491,8 @@ class ModulesStructure(
         }
     }
 
-    val moduleDependencies: Map<KotlinLibrary, List<KotlinLibrary>> = run {
-        val transitives = allDependencies
+    val moduleDependencies: Map<KotlinLibrary, List<KotlinLibrary>> by lazy {
+        val transitives = allDependenciesResolution.resolveWithDependencies().getFullResolvedList()
         transitives.associate { klib ->
             klib.library to klib.resolvedDependencies.map { d -> d.library }
         }.toMap()
@@ -520,7 +523,7 @@ class ModulesStructure(
                 files,
                 project,
                 compilerConfiguration,
-                allDependencies.map { getModuleDescriptor(it) },
+                allModuleDescriptors,
                 friendDependencies.map { getModuleDescriptor(it) },
                 analyzer.targetEnvironment,
                 thisIsBuiltInsModule = builtInModuleDescriptor == null,
@@ -557,7 +560,7 @@ class ModulesStructure(
     val descriptors = mutableMapOf<KotlinLibrary, ModuleDescriptorImpl>()
 
     val allModuleDescriptors = run {
-        val descriptors = allDependencies.map { getModuleDescriptor(it.library) }
+        val descriptors = allDependencies.map { getModuleDescriptor(it) }
 
         descriptors.forEach { descriptor ->
             descriptor.setDependencies(descriptors)
@@ -585,9 +588,6 @@ class ModulesStructure(
         if (isBuiltIns) runtimeModule = md
 
         descriptors[current] = md
-
-        val dependencies = allDependencies.map { getModuleDescriptor(it) }
-        md.setDependencies(dependencies)
 
         return md
     }
