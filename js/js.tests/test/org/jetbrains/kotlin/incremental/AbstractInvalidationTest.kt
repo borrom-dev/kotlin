@@ -376,7 +376,7 @@ abstract class AbstractInvalidationTest : KotlinTestWithEnvironment() {
             moduleSourceFiles,
             configuration,
             sourceModule.jsFrontEndResult.jsAnalysisResult,
-            sortDependencies(sourceModule.descriptors),
+            sortDependencies(sourceModule.moduleDependencies),
             icData,
             expectDescriptorToSymbol,
             IrFactoryImpl,

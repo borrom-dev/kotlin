@@ -160,12 +160,9 @@ data class IrModuleInfo(
     val moduleFragmentToUniqueName: Map<IrModuleFragment, String>,
 )
 
-fun sortDependencies(mapping: Map<KotlinLibrary, ModuleDescriptor>): Collection<KotlinLibrary> {
-    val m2l = mapping.map { it.value to it.key }.toMap()
-
-    return DFS.topologicalOrder(mapping.keys) { m ->
-        val descriptor = mapping[m] ?: error("No descriptor found for library ${m.libraryName}")
-        descriptor.allDependencyModules.filter { it != descriptor }.map { m2l[it] }
+fun sortDependencies(moduleDependencies: Map<KotlinLibrary, List<KotlinLibrary>>): Collection<KotlinLibrary> {
+    return DFS.topologicalOrder(moduleDependencies.keys) { m ->
+        moduleDependencies.getValue(m)
     }.reversed()
 }
 
@@ -226,7 +223,7 @@ fun loadIr(
                 project,
                 configuration,
                 mainModule.files,
-                sortDependencies(depsDescriptors.descriptors),
+                sortDependencies(depsDescriptors.moduleDependencies),
                 friendModules,
                 symbolTable,
                 messageLogger,
@@ -239,7 +236,7 @@ fun loadIr(
             val mainModuleLib = allDependencies.find { it.libraryFile.canonicalPath == mainPath }
                 ?: error("No module with ${mainModule.libPath} found")
             val moduleDescriptor = depsDescriptors.getModuleDescriptor(mainModuleLib)
-            val sortedDependencies = sortDependencies(depsDescriptors.descriptors)
+            val sortedDependencies = sortDependencies(depsDescriptors.moduleDependencies)
             val friendModules = mapOf(mainModuleLib.uniqueName to depsDescriptors.friendDependencies.map { it.library.uniqueName })
 
             return getIrModuleInfoForKlib(
