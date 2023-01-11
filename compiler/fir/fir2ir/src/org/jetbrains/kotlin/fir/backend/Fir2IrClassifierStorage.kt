@@ -80,7 +80,7 @@ class Fir2IrClassifierStorage(
 
     fun preCacheBuiltinClasses() {
         // dependentStorages are only actual for MPP scenario
-        // There is no need to precache them twice since the same library session is used and FIR and IR elements are the same
+        // There is no need to precache them twice: the same library session is used and FIR and IR elements are the same
         if (dependentStorages.isNotEmpty()) return
         for ((classId, irBuiltinSymbol) in typeConverter.classIdToSymbolMap) {
             val firClass = ConeClassLikeLookupTagImpl(classId).toSymbol(session)!!.fir as FirRegularClass
