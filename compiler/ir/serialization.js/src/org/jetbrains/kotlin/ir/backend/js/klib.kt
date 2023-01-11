@@ -166,6 +166,15 @@ fun sortDependencies(moduleDependencies: Map<KotlinLibrary, List<KotlinLibrary>>
     }.reversed()
 }
 
+fun sortDependenciesByModuleDescriptor(mapping: Map<KotlinLibrary, ModuleDescriptor>): Collection<KotlinLibrary> {
+    val m2l = mapping.map { it.value to it.key }.toMap()
+
+    return DFS.topologicalOrder(mapping.keys) { m ->
+        val descriptor = mapping[m] ?: error("No descriptor found for library ${m.libraryName}")
+        descriptor.allDependencyModules.filter { it != descriptor }.map { m2l[it] }
+    }.reversed()
+}
+
 fun deserializeDependencies(
     sortedDependencies: Collection<KotlinLibrary>,
     irLinker: JsIrLinker,
