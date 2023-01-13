@@ -15,6 +15,7 @@ import org.jetbrains.kotlin.fir.lazy.Fir2IrLazyClass
 import org.jetbrains.kotlin.fir.resolve.getSymbolByLookupTag
 import org.jetbrains.kotlin.fir.resolve.providers.firProvider
 import org.jetbrains.kotlin.fir.resolve.providers.symbolProvider
+import org.jetbrains.kotlin.fir.resolve.providers.toSymbol
 import org.jetbrains.kotlin.fir.resolve.toSymbol
 import org.jetbrains.kotlin.fir.symbols.ConeClassLikeLookupTag
 import org.jetbrains.kotlin.fir.symbols.Fir2IrClassSymbol
@@ -83,7 +84,7 @@ class Fir2IrClassifierStorage(
         // There is no need to precache them twice: the same library session is used and FIR and IR elements are the same
         if (dependentStorages.isNotEmpty()) return
         for ((classId, irBuiltinSymbol) in typeConverter.classIdToSymbolMap) {
-            val firClass = classId.toLookupTag().toSymbol(session)!!.fir as FirRegularClass
+            val firClass = classId.toSymbol(session)!!.fir as FirRegularClass
             val irClass = irBuiltinSymbol.owner
             classCache[firClass] = irClass
             processClassHeader(firClass, irClass)
