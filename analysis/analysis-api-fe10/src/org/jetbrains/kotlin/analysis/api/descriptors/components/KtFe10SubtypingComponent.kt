@@ -10,6 +10,7 @@ import org.jetbrains.kotlin.analysis.api.descriptors.KtFe10AnalysisSession
 import org.jetbrains.kotlin.analysis.api.descriptors.components.base.Fe10KtAnalysisSessionComponent
 import org.jetbrains.kotlin.analysis.api.descriptors.types.base.KtFe10Type
 import org.jetbrains.kotlin.analysis.api.lifetime.KtLifetimeToken
+import org.jetbrains.kotlin.analysis.api.symbols.KtTypeParameterSymbol
 import org.jetbrains.kotlin.analysis.api.types.KtType
 
 internal class KtFe10SubtypingComponent(
@@ -29,5 +30,9 @@ internal class KtFe10SubtypingComponent(
         require(superType is KtFe10Type)
         val typeChecker = analysisContext.resolveSession.kotlinTypeCheckerOfOwnerModule
         return typeChecker.isSubtypeOf(subType.fe10Type, superType.fe10Type)
+    }
+
+    override fun isPossiblySubTypeOf(subType: KtType, superType: KtType, freeTypeParameters: List<KtTypeParameterSymbol>): Boolean {
+        return isSubTypeOf(subType, superType) /*TODO*/
     }
 }
