@@ -19,14 +19,12 @@ import org.jetbrains.kotlin.fir.analysis.checkers.hasModifier
 import org.jetbrains.kotlin.fir.analysis.checkers.isSupertypeOf
 import org.jetbrains.kotlin.fir.analysis.checkers.overriddenFunctions
 import org.jetbrains.kotlin.fir.analysis.diagnostics.FirErrors
-import org.jetbrains.kotlin.diagnostics.reportOn
 import org.jetbrains.kotlin.fir.containingClassLookupTag
 import org.jetbrains.kotlin.fir.declarations.FirSimpleFunction
 import org.jetbrains.kotlin.fir.declarations.utils.isInline
 import org.jetbrains.kotlin.fir.declarations.utils.isOperator
 import org.jetbrains.kotlin.fir.resolve.defaultType
 import org.jetbrains.kotlin.fir.resolve.toFirRegularClassSymbol
-import org.jetbrains.kotlin.fir.symbols.impl.ConeClassLikeLookupTagImpl
 import org.jetbrains.kotlin.fir.types.*
 import org.jetbrains.kotlin.fir.types.impl.ConeClassLikeTypeImpl
 import org.jetbrains.kotlin.lexer.KtTokens
@@ -147,7 +145,7 @@ private object Checks {
         paramType.isSupertypeOf(
             ctx.session.typeContext,
             ConeClassLikeTypeImpl(
-                ConeClassLikeLookupTagImpl(StandardClassIds.KProperty),
+                StandardClassIds.KProperty.toLookupTag(),
                 arrayOf(ConeStarProjection),
                 isNullable = false
             )

@@ -226,7 +226,7 @@ private fun FirCallableSymbol<*>.toSymbolForCall(
         // Static fake overrides
         isStatic -> {
             fir.importedFromObjectOrStaticData?.let {
-                ConeClassLikeLookupTagImpl(it.objectClassId)
+                it.objectClassId.toLookupTag()
             } ?: (explicitReceiver as? FirResolvedQualifier)?.toLookupTag()
         }
         // Member fake override or bound callable reference
