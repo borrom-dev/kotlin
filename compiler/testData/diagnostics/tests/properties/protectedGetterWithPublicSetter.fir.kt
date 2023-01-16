@@ -18,6 +18,7 @@ abstract class Sub: Super() {
         s.name = ""
         s.name = s.<!INVISIBLE_REFERENCE!>name<!>
         s.setName("")
+        this.name = this.name
     }
 }
 
