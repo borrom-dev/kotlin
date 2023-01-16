@@ -180,7 +180,7 @@ internal class AdapterGenerator(
         }
     }
 
-    private fun FirQualifiedAccess.findBoundReceiver(explicitReceiverExpression: IrExpression?, isDispatch: Boolean): IrExpression? {
+    private fun FirQualifiedAccessExpression.findBoundReceiver(explicitReceiverExpression: IrExpression?, isDispatch: Boolean): IrExpression? {
         val firReceiver = if (isDispatch) dispatchReceiver else extensionReceiver
         if (firReceiver is FirNoReceiverExpression) {
             return null

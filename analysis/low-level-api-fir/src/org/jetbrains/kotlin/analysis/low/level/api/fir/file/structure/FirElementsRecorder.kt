@@ -63,7 +63,7 @@ internal open class FirElementsRecorder : FirVisitor<Unit, MutableMap<KtElement,
     }
 
     override fun visitVariableAssignment(variableAssignment: FirVariableAssignment, data: MutableMap<KtElement, FirElement>) {
-        cacheElement(variableAssignment.lValue, data) // FirReference is not cached by default
+        variableAssignment.calleeReference?.let { cacheElement(it, data) } // FirReference is not cached by default
         visitElement(variableAssignment, data)
     }
 

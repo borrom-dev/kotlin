@@ -9,6 +9,7 @@ import org.jetbrains.kotlin.contracts.description.isInPlace
 import org.jetbrains.kotlin.fir.declarations.FirAnonymousFunction
 import org.jetbrains.kotlin.fir.declarations.FirFunction
 import org.jetbrains.kotlin.fir.expressions.FirVariableAssignment
+import org.jetbrains.kotlin.fir.expressions.calleeReference
 import org.jetbrains.kotlin.fir.references.toResolvedPropertySymbol
 import org.jetbrains.kotlin.fir.resolve.dfa.cfg.*
 import org.jetbrains.kotlin.fir.symbols.impl.FirPropertySymbol
@@ -57,7 +58,7 @@ class LocalPropertyAndCapturedWriteCollector private constructor() : ControlFlow
     }
 
     override fun visitVariableAssignmentNode(node: VariableAssignmentNode) {
-        val symbol = node.fir.calleeReference.toResolvedPropertySymbol() ?: return
+        val symbol = node.fir.calleeReference?.toResolvedPropertySymbol() ?: return
 
         // Check if this variable assignment is inside a lambda or a local function.
         if (lambdaOrLocalFunctionStack.isEmpty()) return

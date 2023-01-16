@@ -25,6 +25,7 @@ import org.jetbrains.kotlin.fir.symbols.FirBasedSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.*
 import org.jetbrains.kotlin.fir.types.ConeClassLikeType
 import org.jetbrains.kotlin.fir.types.coneTypeSafe
+import org.jetbrains.kotlin.fir.expressions.explicitReceiver
 
 @OptIn(DfaInternals::class)
 class VariableStorageImpl(private val session: FirSession) : VariableStorage() {
@@ -92,7 +93,7 @@ class VariableStorageImpl(private val session: FirSession) : VariableStorage() {
     }
 
     private fun getIdentifierBySymbol(flow: Flow, symbol: FirBasedSymbol<*>, fir: FirElement): Identifier {
-        val expression = fir as? FirQualifiedAccess
+        val expression = fir as? FirQualifiedAccessExpression ?: (fir as? FirVariableAssignment)?.lValue as? FirQualifiedAccessExpression
         // TODO: don't create receiver variables if not going to create the composed variable either?
         return Identifier(
             symbol,
@@ -102,21 +103,20 @@ class VariableStorageImpl(private val session: FirSession) : VariableStorage() {
     }
 
     private fun createReal(flow: Flow, identifier: Identifier, originalFir: FirElement, stability: PropertyStability): RealVariable {
-        val receiver: FirExpression?
-        val isThisReference: Boolean
-        val expression: FirQualifiedAccess? = when (originalFir) {
+        var receiver: FirExpression? = null
+        var isThisReference = false
+        val expression: FirElement? = when (originalFir) {
             is FirQualifiedAccessExpression -> originalFir
             is FirWhenSubjectExpression -> originalFir.whenRef.value.subject as? FirQualifiedAccessExpression
             is FirVariableAssignment -> originalFir
             else -> null
         }
 
-        if (expression != null) {
+        if (expression is FirQualifiedAccessExpression) {
             receiver = expression.explicitReceiver
             isThisReference = expression.calleeReference is FirThisReference
-        } else {
-            receiver = null
-            isThisReference = false
+        } else if (expression is FirVariableAssignment) {
+            receiver = expression.explicitReceiver
         }
 
         val receiverVariable = receiver?.let { getOrCreate(flow, it) }
@@ -162,7 +162,7 @@ class VariableStorageImpl(private val session: FirSession) : VariableStorage() {
             property.receiverParameter != null -> PropertyStability.PROPERTY_WITH_GETTER
             property.getter.let { it != null && it !is FirDefaultPropertyAccessor } -> PropertyStability.PROPERTY_WITH_GETTER
             property.modality != Modality.FINAL -> {
-                val dispatchReceiver = (originalFir.unwrapElement() as? FirQualifiedAccess)?.dispatchReceiver ?: return null
+                val dispatchReceiver = (originalFir.unwrapElement() as? FirQualifiedAccessExpression)?.dispatchReceiver ?: return null
                 val receiverType = dispatchReceiver.typeRef.coneTypeSafe<ConeClassLikeType>()?.fullyExpandedType(session) ?: return null
                 val receiverSymbol = receiverType.lookupTag.toSymbol(session) ?: return null
                 when (val receiverFir = receiverSymbol.fir) {

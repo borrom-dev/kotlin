@@ -17,6 +17,7 @@ import org.jetbrains.kotlin.analysis.low.level.api.fir.lazy.resolve.RawFirNonLoc
 import org.jetbrains.kotlin.analysis.low.level.api.fir.lazy.resolve.declarationCanBeLazilyResolved
 import org.jetbrains.kotlin.fir.FirElement
 import org.jetbrains.kotlin.fir.declarations.*
+import org.jetbrains.kotlin.fir.expressions.FirVariableAssignment
 import org.jetbrains.kotlin.fir.psi
 import org.jetbrains.kotlin.fir.scopes.kotlinScopeProvider
 import org.jetbrains.kotlin.fir.symbols.FirBasedSymbol
@@ -37,7 +38,15 @@ internal class KtToFirMapping(firElement: FirElement, recorder: FirElementsRecor
     private val userTypeMapping = ConcurrentHashMap<KtUserType, FirElement>()
 
     fun getElement(ktElement: KtElement, firResolveSession: LLFirResolveSession): FirElement? {
-        mapping[ktElement]?.let { return it }
+        mapping[ktElement]?.let {
+            // special case for LHS of assignment
+            val parentElement = mapping[ktElement.parent]
+            if (parentElement is FirVariableAssignment && parentElement.lValue == it) {
+                return parentElement
+            }
+
+            return it
+        }
 
         val userType = when (ktElement) {
             is KtUserType -> ktElement
@@ -226,7 +235,12 @@ internal class NonReanalyzableDeclarationStructureElement(
     }
 }
 
-internal class DanglingTopLevelModifierListStructureElement(firFile: FirFile, val fir: FirDeclaration, moduleComponents: LLFirModuleResolveComponents, override val psi: KtAnnotated) :
+internal class DanglingTopLevelModifierListStructureElement(
+    firFile: FirFile,
+    val fir: FirDeclaration,
+    moduleComponents: LLFirModuleResolveComponents,
+    override val psi: KtAnnotated
+) :
     FileStructureElement(firFile, moduleComponents) {
     override val mappings = KtToFirMapping(fir, FirElementsRecorder())
 

@@ -150,3 +150,4 @@ val FirIntersectionTypeRef.isLeftValidForDefinitelyNotNullable
     get() = leftType.coneType.let { it is ConeTypeParameterType && it.canBeNull && !it.isMarkedNullable }
 
 val FirIntersectionTypeRef.isRightValidForDefinitelyNotNullable get() = rightType.coneType.isAny
+

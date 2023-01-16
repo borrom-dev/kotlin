@@ -12,16 +12,17 @@ import org.jetbrains.kotlin.diagnostics.DiagnosticReporter
 import org.jetbrains.kotlin.fir.analysis.diagnostics.FirErrors
 import org.jetbrains.kotlin.diagnostics.reportOn
 import org.jetbrains.kotlin.fir.declarations.fullyExpandedClass
-import org.jetbrains.kotlin.fir.expressions.FirQualifiedAccess
+import org.jetbrains.kotlin.fir.expressions.FirQualifiedAccessExpression
 import org.jetbrains.kotlin.fir.expressions.FirResolvedQualifier
 import org.jetbrains.kotlin.fir.symbols.FirBasedSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirRegularClassSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirTypeAliasSymbol
+import org.jetbrains.kotlin.fir.expressions.explicitReceiver
 import org.jetbrains.kotlin.fir.types.isUnit
 
 object FirStandaloneQualifierChecker : FirResolvedQualifierChecker() {
     override fun check(expression: FirResolvedQualifier, context: CheckerContext, reporter: DiagnosticReporter) {
-        val lastQualifiedAccess = context.qualifiedAccessOrAnnotationCalls.lastOrNull() as? FirQualifiedAccess
+        val lastQualifiedAccess = context.qualifiedAccessOrAnnotationCalls.lastOrNull() as? FirQualifiedAccessExpression
         if (lastQualifiedAccess?.explicitReceiver === expression) return
         val lastGetClass = context.getClassCalls.lastOrNull()
         if (lastGetClass?.argument === expression) return

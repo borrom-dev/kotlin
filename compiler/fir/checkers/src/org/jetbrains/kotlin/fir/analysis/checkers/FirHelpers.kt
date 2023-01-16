@@ -666,7 +666,7 @@ fun getActualTargetList(annotated: FirDeclaration): AnnotationTargetList {
 
 private typealias TargetLists = AnnotationTargetLists
 
-fun FirQualifiedAccess.explicitReceiverIsNotSuperReference(): Boolean {
+fun FirQualifiedAccessExpression.explicitReceiverIsNotSuperReference(): Boolean {
     return (this.explicitReceiver as? FirQualifiedAccessExpression)?.calleeReference !is FirSuperReference
 }
 

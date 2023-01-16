@@ -237,6 +237,9 @@ sealed class KtFakeSourceElementKind : KtSourceElementKind() {
     // for extension receiver type the corresponding receiver parameter is generated
     // with a fake sources which refers to this the type
     object ReceiverFromType : KtFakeSourceElementKind()
+
+    // for when on the LHS of an assignment an error expression appears
+    object AssignmentLValueError: KtFakeSourceElementKind()
 }
 
 sealed class AbstractKtSourceElement {

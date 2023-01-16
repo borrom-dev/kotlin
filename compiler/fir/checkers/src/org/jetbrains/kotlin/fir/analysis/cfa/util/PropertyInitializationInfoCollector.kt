@@ -7,6 +7,7 @@ package org.jetbrains.kotlin.fir.analysis.cfa.util
 
 import kotlinx.collections.immutable.persistentMapOf
 import org.jetbrains.kotlin.contracts.description.EventOccurrencesRange
+import org.jetbrains.kotlin.fir.expressions.calleeReference
 import org.jetbrains.kotlin.fir.references.toResolvedPropertySymbol
 import org.jetbrains.kotlin.fir.resolve.dfa.cfg.*
 import org.jetbrains.kotlin.fir.symbols.impl.FirPropertySymbol
@@ -37,7 +38,7 @@ class PropertyInitializationInfoCollector(
         data: PathAwarePropertyInitializationInfo
     ): PathAwarePropertyInitializationInfo {
         val dataForNode = visitNode(node, data)
-        val symbol = node.fir.calleeReference.toResolvedPropertySymbol() ?: return dataForNode
+        val symbol = node.fir.calleeReference?.toResolvedPropertySymbol() ?: return dataForNode
         return if (symbol !in localProperties) {
             dataForNode
         } else {
