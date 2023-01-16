@@ -41,8 +41,6 @@ interface CompilerVersion : Serializable {
     }
 }
 
-fun String.parseCompilerVersion() = CompilerVersion.fromString(this)
-
 data class CompilerVersionImpl(
     override val meta: MetaVersion = MetaVersion.DEV,
     override val major: Int,
