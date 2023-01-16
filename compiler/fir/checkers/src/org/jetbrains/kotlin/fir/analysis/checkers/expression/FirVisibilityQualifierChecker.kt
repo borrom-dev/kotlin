@@ -5,6 +5,7 @@
 
 package org.jetbrains.kotlin.fir.analysis.checkers.expression
 
+import org.jetbrains.kotlin.KtFakeSourceElementKind
 import org.jetbrains.kotlin.fir.analysis.checkers.context.CheckerContext
 import org.jetbrains.kotlin.diagnostics.DiagnosticReporter
 import org.jetbrains.kotlin.fir.analysis.diagnostics.FirErrors
@@ -36,7 +37,9 @@ object FirVisibilityQualifierChecker : FirResolvedQualifierChecker() {
         val firFile = context.containingFile ?: return
         val firClassLikeDeclaration = symbol.fir
 
-        if (!context.session.visibilityChecker.isClassLikeVisible(
+        // Note: errors on implicit receiver are already reported in coneDiagnosticToFirDiagnostic
+        if (expression.source?.kind != KtFakeSourceElementKind.ImplicitReceiver &&
+            !context.session.visibilityChecker.isClassLikeVisible(
                 firClassLikeDeclaration, context.session, firFile, context.containingDeclarations,
             )
         ) {
