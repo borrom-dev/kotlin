@@ -11,6 +11,7 @@ import org.jetbrains.kotlin.descriptors.Visibility
 import org.jetbrains.kotlin.fir.declarations.*
 import org.jetbrains.kotlin.fir.declarations.synthetic.FirSyntheticPropertyAccessor
 import org.jetbrains.kotlin.fir.declarations.utils.*
+import org.jetbrains.kotlin.fir.declarations.utils.isStatic
 import org.jetbrains.kotlin.fir.expressions.FirPropertyAccessExpression
 import org.jetbrains.kotlin.fir.expressions.FirThisReceiverExpression
 import org.jetbrains.kotlin.fir.references.FirSuperReference
@@ -336,7 +337,8 @@ abstract class FirVisibilityChecker : FirSessionComponent {
                 (fir as? FirCallableDeclaration)
                     ?.propertyIfAccessor?.propertyIfBackingField
                     ?.dispatchReceiverClassLookupTagOrNull()?.toSymbol(session)
-                    ?: return true
+                    ?: // Note: private static symbols aren't accessible by use-site dispatch receiver
+                    return symbol !is FirCallableSymbol || !symbol.isStatic
 
             val dispatchReceiverParameterClassLookupTag = dispatchReceiverParameterClassSymbol.toLookupTag()
             val dispatchReceiverValueOwnerLookupTag =
