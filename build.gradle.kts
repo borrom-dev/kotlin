@@ -503,6 +503,12 @@ allprojects {
             }
         }
 
+        maven("https://maven.pkg.jetbrains.space/kotlin/p/dokka/dev") {
+            content {
+                includeGroup("org.jetbrains.dokka")
+            }
+        }
+
         maven("https://download.jetbrains.com/teamcity-repository") {
             content {
                 includeModule("org.jetbrains.teamcity", "serviceMessages")

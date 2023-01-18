@@ -69,6 +69,7 @@ val cacheMap: Map<String, String> = mapOf(
     "https://maven.pkg.jetbrains.space/kotlin/p/kotlin/kotlin-ide-plugin-dependencies" to "https://cache-redirector.jetbrains.com/maven.pkg.jetbrains.space/kotlin/p/kotlin/kotlin-ide-plugin-dependencies",
     "https://maven.pkg.jetbrains.space/kotlin/p/kotlin/kotlin-plugin" to "https://cache-redirector.jetbrains.com/maven.pkg.jetbrains.space/kotlin/p/kotlin/kotlin-plugin",
     "https://maven.pkg.jetbrains.space/public/p/compose/dev" to "https://cache-redirector.jetbrains.com/maven.pkg.jetbrains.space/public/p/compose/dev",
+    "https://maven.pkg.jetbrains.space/kotlin/p/dokka/dev" to "https://cache-redirector.jetbrains.com/maven.pkg.jetbrains.space/kotlin/p/dokka/dev",
     "https://maven.pkg.jetbrains.space/public/p/space/maven" to "https://cache-redirector.jetbrains.com/maven.pkg.jetbrains.space/public/p/space/maven",
     "https://nodejs.org/dist" to "https://cache-redirector.jetbrains.com/nodejs.org/dist",
     "https://kotlin.bintray.com/dukat" to "https://cache-redirector.jetbrains.com/kotlin.bintray.com/dukat",

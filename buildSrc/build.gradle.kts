@@ -75,6 +75,7 @@ repositories {
     maven("https://maven.google.com/")
     maven("https://packages.jetbrains.team/maven/p/ij/intellij-dependencies")
     maven("https://maven.pkg.jetbrains.space/kotlin/p/kotlin/kotlin-dependencies")
+    maven("https://maven.pkg.jetbrains.space/kotlin/p/dokka/dev")
     gradlePluginPortal()
 
     extra["bootstrapKotlinRepo"]?.let {
@@ -141,7 +142,7 @@ dependencies {
     implementation(kotlin("stdlib", embeddedKotlinVersion))
     implementation("org.jetbrains.kotlin:kotlin-build-gradle-plugin:${kotlinBuildProperties.buildGradlePluginVersion}")
     implementation("com.gradle.publish:plugin-publish-plugin:1.0.0")
-    implementation("org.jetbrains.dokka:dokka-gradle-plugin:1.7.20")
+    implementation("org.jetbrains.dokka:dokka-gradle-plugin:1.8.0-dev-189")
 
     implementation("com.jakewharton.dex:dex-member-list:4.1.1")
 
