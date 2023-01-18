@@ -83,7 +83,8 @@ class FunctionInlining(
     val context: CommonBackendContext,
     val inlineFunctionResolver: InlineFunctionResolver,
     val innerClassesSupport: InnerClassesSupport? = null,
-    val insertAdditionalImplicitCasts: Boolean = false
+    val insertAdditionalImplicitCasts: Boolean = false,
+    val alwaysCreateTemporaryVariablesForArguments: Boolean = false
 ) : IrElementTransformerVoidWithContext(), BodyLoweringPass {
 
     constructor(context: CommonBackendContext) : this(context, DefaultInlineFunctionResolver(context), null)
@@ -602,42 +603,60 @@ class FunctionInlining(
                     return@forEach
                 }
 
-                if (argument.isImmutableVariableLoad) {
-                    substituteMap[argument.parameter] =
-                        argument.argumentExpression.transform( // Arguments may reference the previous ones - substitute them.
-                            substitutor,
-                            data = null
-                        )
+                // Arguments may reference the previous ones - substitute them.
+                val variableInitializer = argument.argumentExpression.transform(substitutor, data = null)
+                val parameter = argument.parameter
+
+                fun substituteParameterViaTemporaryVariable() {
+                    val newVariable = createTemporaryVariable(parameter, variableInitializer, callee)
+                    evaluationStatements.add(newVariable)
+                    substituteMap[parameter] = IrGetValueWithoutLocation(newVariable.symbol)
+                }
+
+                if (alwaysCreateTemporaryVariablesForArguments && !parameter.isInlineParameter()) {
+                    substituteParameterViaTemporaryVariable()
                     return@forEach
                 }
 
-                // Arguments may reference the previous ones - substitute them.
-                val variableInitializer = argument.argumentExpression.transform(substitutor, data = null)
+                if (argument.isImmutableVariableLoad) {
+                    substituteMap[parameter] = variableInitializer
+                    return@forEach
+                }
 
                 val argumentExtracted = !argument.argumentExpression.isPure(false, context = context)
-
                 if (!argumentExtracted) {
-                    substituteMap[argument.parameter] = variableInitializer
+                    substituteMap[parameter] = variableInitializer
                 } else {
-                    val newVariable =
-                        currentScope.scope.createTemporaryVariable(
-                            irExpression = IrBlockImpl(
-                                variableInitializer.startOffset,
-                                variableInitializer.endOffset,
-                                variableInitializer.type,
-                                InlinerExpressionLocationHint((currentScope.irElement as IrSymbolOwner).symbol)
-                            ).apply {
-                                statements.add(variableInitializer)
-                            },
-                            nameHint = callee.symbol.owner.name.toString(),
-                            isMutable = false
-                        )
-
-                    evaluationStatements.add(newVariable)
-                    substituteMap[argument.parameter] = IrGetValueWithoutLocation(newVariable.symbol)
+                    substituteParameterViaTemporaryVariable()
                 }
             }
             return evaluationStatements
+        }
+
+        private fun createTemporaryVariable(parameter: IrValueParameter, variableInitializer: IrExpression, callee: IrFunction): IrVariable {
+            val variable = currentScope.scope.createTemporaryVariable(
+                irExpression = IrBlockImpl(
+                    variableInitializer.startOffset,
+                    variableInitializer.endOffset,
+                    variableInitializer.type,
+                    InlinerExpressionLocationHint((currentScope.irElement as IrSymbolOwner).symbol)
+                ).apply {
+                    statements.add(variableInitializer)
+                },
+                nameHint = callee.symbol.owner.name.toString(),
+                isMutable = false,
+                origin = if (parameter == callee.extensionReceiverParameter) {
+                    IrDeclarationOrigin.IR_TEMPORARY_VARIABLE_FOR_INLINED_EXTENSION_RECEIVER
+                } else {
+                    IrDeclarationOrigin.IR_TEMPORARY_VARIABLE_FOR_INLINED_PARAMETER
+                }
+            )
+
+            if (alwaysCreateTemporaryVariablesForArguments) {
+                variable.name = parameter.name
+            }
+
+            return variable
         }
     }
 

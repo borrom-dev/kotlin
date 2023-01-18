@@ -186,7 +186,12 @@ internal val wrapInlineDeclarationsWithReifiedTypeParametersLowering = makeKonan
 
 internal val inlinePhase = makeKonanFileOpPhase(
         { context, irFile ->
-            FunctionInlining(context, NativeInlineFunctionResolver(context, context.generationState)).lower(irFile)
+            val generationState = context.generationState
+            FunctionInlining(
+                    context,
+                    NativeInlineFunctionResolver(context, generationState),
+                    alwaysCreateTemporaryVariablesForArguments = generationState.config.debug
+            ).lower(irFile)
         },
         name = "Inline",
         description = "Functions inlining",

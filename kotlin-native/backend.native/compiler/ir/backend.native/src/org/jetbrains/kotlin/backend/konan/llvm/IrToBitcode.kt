@@ -2894,12 +2894,10 @@ internal class CodeGeneratorVisitor(val generationState: NativeGenerationState, 
     }
 }
 
-private fun IrValueParameter.debugNameConversion() = descriptor.name.debugNameConversion()
-
-private fun IrVariable.debugNameConversion() = descriptor.name.debugNameConversion()
-
 private val thisName = Name.special("<this>")
 private val underscoreThisName = Name.identifier("_this")
+private val doubleUnderscoreThisName = Name.identifier("__this")
+
 /**
  * HACK: this is workaround for GH-2316, to let IDE some how operate with this.
  * We're experiencing issue with libclang which is used as compiler of expression in lldb
@@ -2907,9 +2905,15 @@ private val underscoreThisName = Name.identifier("_this")
  *   1. <this> isn't accepted by libclang as valid variable name.
  *   2. this is reserved name and compiled in special way.
  */
-private fun Name.debugNameConversion(): Name = when(this) {
-    thisName -> underscoreThisName
-    else -> this
+private fun IrValueDeclaration.debugNameConversion(): Name {
+    val name = descriptor.name
+    if (name == thisName) {
+        return when (origin) {
+            IrDeclarationOrigin.IR_TEMPORARY_VARIABLE_FOR_INLINED_EXTENSION_RECEIVER -> doubleUnderscoreThisName
+            else -> underscoreThisName
+        }
+    }
+    return name
 }
 
 internal class LocationInfo(val scope: DIScopeOpaqueRef,
