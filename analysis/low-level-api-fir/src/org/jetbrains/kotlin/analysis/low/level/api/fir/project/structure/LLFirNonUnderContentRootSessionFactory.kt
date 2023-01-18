@@ -71,6 +71,7 @@ internal class LLFirNonUnderContentRootSessionFactory(private val project: Proje
 
             registerIdeComponents(project)
             registerCommonComponents(languageVersionSettings)
+            registerCommonComponentsAfterExtensionsAreConfigured()
             registerCommonJavaComponents(JavaModuleResolver.getInstance(project))
             registerResolveComponents()
             registerJavaSpecificResolveComponents()
