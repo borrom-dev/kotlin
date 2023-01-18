@@ -340,7 +340,7 @@ open class IncrementalJvmCompilerRunner(
         dirtyFiles.addByDirtySymbols(removedClassesChanges.dirtyLookupSymbols)
         dirtyFiles.addByDirtyClasses(removedClassesChanges.dirtyClassesFqNames)
         dirtyFiles.addByDirtyClasses(removedClassesChanges.dirtyClassesFqNamesForceRecompile)
-        return CompilationMode.Incremental(dirtyFiles)
+        return CompilationMode.Incremental(dirtyFiles, changedFiles.removed)
     }
 
     private fun processChangedJava(changedFiles: ChangedFiles.Known, caches: IncrementalJvmCachesManager): BuildAttribute? {

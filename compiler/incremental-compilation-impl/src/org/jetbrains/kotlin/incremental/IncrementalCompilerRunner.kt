@@ -353,7 +353,7 @@ abstract class IncrementalCompilerRunner<
     }
 
     protected sealed class CompilationMode {
-        class Incremental(val dirtyFiles: DirtyFilesContainer) : CompilationMode()
+        class Incremental(val dirtyFiles: DirtyFilesContainer, val removedFiles: List<File>) : CompilationMode()
         class Rebuild(val reason: BuildAttribute) : CompilationMode()
     }
 
@@ -448,6 +448,11 @@ abstract class IncrementalCompilerRunner<
             is CompilationMode.Rebuild -> LinkedHashSet(allKotlinSources)
         }
 
+        val removedKotlinSources = when (compilationMode) {
+            is CompilationMode.Incremental -> compilationMode.removedFiles
+            is CompilationMode.Rebuild -> LinkedHashSet()
+        }
+
         val currentBuildInfo = BuildInfo(startTS = System.currentTimeMillis(), abiSnapshotData?.classpathAbiSnapshot ?: emptyMap())
         val buildDirtyLookupSymbols = HashSet<LookupSymbol>()
         val buildDirtyFqNames = HashSet<FqName>()
@@ -469,7 +474,7 @@ abstract class IncrementalCompilerRunner<
             val lookupTracker = LookupTrackerImpl(LookupTracker.DO_NOTHING)
             val expectActualTracker = ExpectActualTrackerImpl()
             //TODO(valtman) sourceToCompile calculate based on abiSnapshot
-            val (sourcesToCompile, removedKotlinSources) = dirtySources.partition { it.exists() && allKotlinSources.contains(it) }
+            val sourcesToCompile = removedKotlinSources?.also { removeSources -> dirtySources.filter { !removeSources.contains(it) }} :
 
             val services = makeServices(
                 args, lookupTracker, expectActualTracker, caches,
