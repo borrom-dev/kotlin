@@ -130,18 +130,17 @@ public final class PersistentHashMapValueStorage {
                 }
             };
 
-    private static final FileAccessorCache<Path, OutputStream> ourAppendersCache =
-            new FileAccessorCache<Path, OutputStream>(CACHE_PROTECTED_QUEUE_SIZE, CACHE_PROBATIONAL_QUEUE_SIZE) {
+    private static final FileAccessorCache<Path, SyncAbleBufferedOutputStreamOverCachedFileChannel> ourAppendersCache =
+            new FileAccessorCache<Path, SyncAbleBufferedOutputStreamOverCachedFileChannel>(CACHE_PROTECTED_QUEUE_SIZE, CACHE_PROBATIONAL_QUEUE_SIZE) {
                 @NotNull
                 @Override
-                protected OutputStream createAccessor(Path path) {
-                    OutputStream out = new OutputStreamOverRandomAccessFileCache(path);
-                    return new BufferedOutputStream(out);
+                protected PersistentHashMapValueStorage.SyncAbleBufferedOutputStreamOverCachedFileChannel createAccessor(Path path) {
+                    return new SyncAbleBufferedOutputStreamOverCachedFileChannel(path);
                 }
 
                 @Override
-                protected void disposeAccessor(@NotNull OutputStream fileAccessor) throws IOException {
-                    fileAccessor.close();
+                protected void disposeAccessor(@NotNull PersistentHashMapValueStorage.SyncAbleBufferedOutputStreamOverCachedFileChannel stream) throws IOException {
+                    stream.close();
                 }
             };
 
@@ -186,10 +185,12 @@ public final class PersistentHashMapValueStorage {
 
             // avoid corruption issue when disk fails to write first record synchronously or unexpected first write file increase (IDEA-106306),
             // code depends on correct value of mySize
-            FileAccessorCache.Handle<OutputStream> streamCacheValue = ourAppendersCache.getIfCached(myPath);
+            FileAccessorCache.Handle<SyncAbleBufferedOutputStreamOverCachedFileChannel> streamCacheValue = ourAppendersCache.getIfCached(myPath);
             if (streamCacheValue != null) {
                 try {
-                    IOUtil.syncStream(streamCacheValue.get());
+                    final SyncAbleBufferedOutputStreamOverCachedFileChannel stream = streamCacheValue.get();
+                    stream.flush();
+                    stream.sync();
                 }
                 catch (IOException e) {
                     throw new RuntimeException(e);
@@ -222,7 +223,7 @@ public final class PersistentHashMapValueStorage {
         if (myCompressedAppendableFile != null) {
             dataOutputStream = new DataOutputStream(new OutputStream() {
                 @Override
-                public void write(byte @NotNull [] b, int off, int len) throws IOException {
+                public void write(byte[] b, int off, int len) throws IOException {
                     myCompressedAppendableFile.append(b, off, len);
                 }
 
@@ -233,7 +234,7 @@ public final class PersistentHashMapValueStorage {
                 }
             });
         } else {
-            FileAccessorCache.@NotNull Handle<OutputStream> appender = ourAppendersCache.get(myPath);
+            FileAccessorCache.Handle<SyncAbleBufferedOutputStreamOverCachedFileChannel> appender = ourAppendersCache.get(myPath);
             dataOutputStream = toDataOutputStream(appender);
         }
 
@@ -685,7 +686,7 @@ public final class PersistentHashMapValueStorage {
     }
 
     private static void forceAppender(Path path) {
-        final FileAccessorCache.Handle<OutputStream> cached = ourAppendersCache.getIfCached(path);
+        final FileAccessorCache.Handle<? extends OutputStream> cached = ourAppendersCache.getIfCached(path);
         if (cached != null) {
             try {
                 cached.get().flush();
@@ -738,12 +739,12 @@ public final class PersistentHashMapValueStorage {
     }
 
     @NotNull
-    private static DataInputStream toDataInputStream(byte @NotNull[] buffer, int offset, int length) {
+    private static DataInputStream toDataInputStream(byte[] buffer, int offset, int length) {
         return new DataInputStream(new UnsyncByteArrayInputStream(buffer, offset, length));
     }
 
     @NotNull
-    private static DataOutputStream toDataOutputStream(FileAccessorCache.@NotNull Handle<OutputStream> handle) {
+    private static DataOutputStream toDataOutputStream(FileAccessorCache.Handle<SyncAbleBufferedOutputStreamOverCachedFileChannel> handle) {
         return new DataOutputStream(handle.get()) {
             @Override
             public void close() throws IOException {
@@ -826,29 +827,43 @@ public final class PersistentHashMapValueStorage {
         }
     }
 
-    private static class OutputStreamOverRandomAccessFileCache extends OutputStream {
+    private static class SyncAbleBufferedOutputStreamOverCachedFileChannel extends BufferedOutputStream {
         private final Path myPath;
 
-        OutputStreamOverRandomAccessFileCache(Path path) {
+        SyncAbleBufferedOutputStreamOverCachedFileChannel(final Path path) {
+            super(new OutputStreamOverRandomAccessFileCache(path));
             myPath = path;
         }
 
-        @Override
-        public void write(byte @NotNull [] b, int off, int len) throws IOException {
-            FileAccessorCache.Handle<FileChannelWithSizeTracking> fileAccessor = ourFileChannelCache.get(myPath);
-            FileChannelWithSizeTracking file = fileAccessor.get();
-            try {
-                file.write(file.length(), b, off, len);
-            }
-            finally {
-                fileAccessor.release();
-            }
+        public void sync() throws IOException {
+            final FileAccessorCache.Handle<FileChannelWithSizeTracking> fileAccessor = ourFileChannelCache.get(myPath);
+            final FileChannelWithSizeTracking fileChannel = fileAccessor.get();
+            fileChannel.force();
         }
 
-        @Override
-        public void write(int b) throws IOException {
-            byte[] r = {(byte)(b & 0xFF)};
-            write(r);
+        /** Implements output stream by writing data through {@link FileChannelWithSizeTracking} out of {@link #ourFileChannelCache} */
+        private static class OutputStreamOverRandomAccessFileCache extends OutputStream {
+            private final Path myPath;
+
+            public OutputStreamOverRandomAccessFileCache(Path path) { myPath = path; }
+
+            @Override
+            public void write(byte[] b, int off, int len) throws IOException {
+                FileAccessorCache.Handle<FileChannelWithSizeTracking> fileAccessor = ourFileChannelCache.get(myPath);
+                FileChannelWithSizeTracking file = fileAccessor.get();
+                try {
+                    file.write(file.length(), b, off, len);
+                }
+                finally {
+                    fileAccessor.release();
+                }
+            }
+
+            @Override
+            public void write(int b) throws IOException {
+                byte[] r = {(byte)(b & 0xFF)};
+                write(r);
+            }
         }
     }
 
