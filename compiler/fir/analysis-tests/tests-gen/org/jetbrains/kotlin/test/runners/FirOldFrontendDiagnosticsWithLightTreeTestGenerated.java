@@ -34483,6 +34483,12 @@ public class FirOldFrontendDiagnosticsWithLightTreeTestGenerated extends Abstrac
             }
 
             @Test
+            @TestMetadata("javaInterfaceFieldDirectAccess.kt")
+            public void testJavaInterfaceFieldDirectAccess() throws Exception {
+                runTest("compiler/testData/diagnostics/tests/visibility/javaInterfaceFieldDirectAccess.kt");
+            }
+
+            @Test
             @TestMetadata("lackOfInvisibleSetterOfJavaClassInSamePackage.kt")
             public void testLackOfInvisibleSetterOfJavaClassInSamePackage() throws Exception {
                 runTest("compiler/testData/diagnostics/tests/visibility/lackOfInvisibleSetterOfJavaClassInSamePackage.kt");
@@ -34510,6 +34516,12 @@ public class FirOldFrontendDiagnosticsWithLightTreeTestGenerated extends Abstrac
             @TestMetadata("packagePrivateStatic.kt")
             public void testPackagePrivateStatic() throws Exception {
                 runTest("compiler/testData/diagnostics/tests/visibility/packagePrivateStatic.kt");
+            }
+
+            @Test
+            @TestMetadata("packagePrivateStaticInterfaceFieldViaKotlinClass.kt")
+            public void testPackagePrivateStaticInterfaceFieldViaKotlinClass() throws Exception {
+                runTest("compiler/testData/diagnostics/tests/visibility/packagePrivateStaticInterfaceFieldViaKotlinClass.kt");
             }
 
             @Test
