@@ -8,11 +8,16 @@ package org.jetbrains.kotlin.fir.types
 import org.jetbrains.kotlin.builtins.functions.FunctionalTypeKind
 import org.jetbrains.kotlin.builtins.functions.FunctionalTypeKindExtractor
 import org.jetbrains.kotlin.fir.FirSession
+import org.jetbrains.kotlin.fir.declarations.utils.isSuspend
 import org.jetbrains.kotlin.fir.extensions.FirFunctionalTypeKindExtension
 import org.jetbrains.kotlin.fir.extensions.extensionService
 import org.jetbrains.kotlin.fir.extensions.functionalTypeKindExtensions
+import org.jetbrains.kotlin.fir.symbols.impl.FirNamedFunctionSymbol
 
 class FirFunctionalTypeKindServiceImpl(session: FirSession) : FirFunctionalTypeKindService() {
+    private val nonReflectKindsFromExtensions = mutableListOf<FunctionalTypeKind>()
+    private val reflectKindsFromExtensions = mutableListOf<FunctionalTypeKind>()
+
     override val extractor: FunctionalTypeKindExtractor = run {
         val kinds = buildList {
             add(FunctionalTypeKind.Function)
@@ -25,7 +30,9 @@ class FirFunctionalTypeKindServiceImpl(session: FirSession) : FirFunctionalTypeK
                     require(nonReflectKind.reflectKind() == reflectKind)
                     require(reflectKind.nonReflectKind() == nonReflectKind)
                     add(nonReflectKind)
+                    nonReflectKindsFromExtensions += nonReflectKind
                     add(reflectKind)
+                    reflectKindsFromExtensions += reflectKind
                 }
             }
 
@@ -38,6 +45,31 @@ class FirFunctionalTypeKindServiceImpl(session: FirSession) : FirFunctionalTypeK
                 "There are clashing functional type kinds: $allNames"
             }
         }
+
         FunctionalTypeKindExtractor(kinds)
+    }
+
+    override fun extractSingleSpecialKindForFunction(functionSymbol: FirNamedFunctionSymbol): FunctionalTypeKind? {
+        if (nonReflectKindsFromExtensions.isEmpty()) {
+            return FunctionalTypeKind.SuspendFunction.takeIf { functionSymbol.isSuspend }
+        }
+        return extractAllSpecialKindsForFunction(functionSymbol).singleOrNull()
+    }
+
+    override fun extractAllSpecialKindsForFunction(functionSymbol: FirNamedFunctionSymbol): List<FunctionalTypeKind> {
+        return buildList {
+            if (functionSymbol.isSuspend) {
+                add(FunctionalTypeKind.SuspendFunction)
+            }
+            if (nonReflectKindsFromExtensions.isNotEmpty()) {
+                for (annotationClassId in functionSymbol.resolvedAnnotationClassIds) {
+                    for (kind in nonReflectKindsFromExtensions) {
+                        if (kind.annotationOnInvokeClassId == annotationClassId) {
+                            add(kind)
+                        }
+                    }
+                }
+            }
+        }
     }
 }

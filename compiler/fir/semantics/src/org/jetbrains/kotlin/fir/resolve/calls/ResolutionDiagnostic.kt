@@ -109,7 +109,11 @@ class ArgumentTypeMismatch(
     val actualType: ConeKotlinType,
     val argument: FirExpression,
     val isMismatchDueToNullability: Boolean,
-) : ResolutionDiagnostic(INAPPLICABLE)
+) : ResolutionDiagnostic(INAPPLICABLE) {
+    init {
+        Unit
+    }
+}
 
 class NullForNotNullType(
     val argument: FirExpression
