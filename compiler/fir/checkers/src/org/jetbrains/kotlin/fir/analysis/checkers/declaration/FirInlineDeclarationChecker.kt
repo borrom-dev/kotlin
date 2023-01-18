@@ -7,6 +7,7 @@ package org.jetbrains.kotlin.fir.analysis.checkers.declaration
 
 import org.jetbrains.kotlin.KtSourceElement
 import org.jetbrains.kotlin.builtins.StandardNames.BACKING_FIELD
+import org.jetbrains.kotlin.builtins.functions.isSuspendType
 import org.jetbrains.kotlin.config.LanguageFeature
 import org.jetbrains.kotlin.descriptors.EffectiveVisibility
 import org.jetbrains.kotlin.descriptors.Visibilities
@@ -62,7 +63,7 @@ abstract class FirInlineDeclarationChecker : FirFunctionChecker() {
         val inalienableParameters = function.valueParameters.filter {
             if (it.isNoinline) return@filter false
             val type = it.returnTypeRef.coneType
-            !type.isMarkedNullable && type.isFunctionalType(context.session) { kind -> !kind.isReflectType }
+            !type.isMarkedNullable && type.isNonReflectFunctionalType(context.session)
         }.map { it.symbol }
 
         val visitor = inlineVisitor(
@@ -178,7 +179,7 @@ abstract class FirInlineDeclarationChecker : FirFunctionChecker() {
             // TODO: receivers are currently not inline (KT-5837)
             // if (targetSymbol.isInline) return true
             return targetSymbol.name == OperatorNameConventions.INVOKE &&
-                    targetSymbol.dispatchReceiverType?.isBuiltinFunctionalType(session) == true
+                    targetSymbol.dispatchReceiverType?.isSomeFunctionalType(session) == true
         }
 
         private fun checkQualifiedAccess(
@@ -354,8 +355,9 @@ abstract class FirInlineDeclarationChecker : FirFunctionChecker() {
     ) {
         for (param in function.valueParameters) {
             val coneType = param.returnTypeRef.coneType
-            val isFunctionalType = coneType.isFunctionalType(context.session)
-            val isSuspendFunctionalType = coneType.isSuspendOrKSuspendFunctionType(context.session)
+            val functionalKind = coneType.functionalTypeKind(context.session)
+            val isFunctionalType = functionalKind != null
+            val isSuspendFunctionalType = functionalKind?.isSuspendType == true
             val defaultValue = param.defaultValue
 
             if (!(isFunctionalType || isSuspendFunctionalType) && (param.isNoinline || param.isCrossinline)) {
@@ -438,7 +440,7 @@ abstract class FirInlineDeclarationChecker : FirFunctionChecker() {
             function.valueParameters.any { param ->
                 val type = param.returnTypeRef.coneType
                 !param.isNoinline && !type.isNullable
-                        && (type.isFunctionalType(session) || type.isSuspendOrKSuspendFunctionType(session))
+                        && (type.isSimpleFunctionType(session) || type.isSuspendFunctionType(session))
             }
         if (hasInlinableParameters) return
         if (function.isInlineOnly(session)) return

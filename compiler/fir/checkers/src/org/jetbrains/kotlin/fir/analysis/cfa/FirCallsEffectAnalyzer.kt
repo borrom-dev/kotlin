@@ -283,7 +283,7 @@ object FirCallsEffectAnalyzer : FirControlFlowChecker() {
     }
 
     private fun FirTypeRef?.isFunctionalTypeRef(session: FirSession): Boolean {
-        return this?.coneType?.isBuiltinFunctionalType(session) == true
+        return this?.coneType?.isSomeFunctionalType(session) == true
     }
 
     private fun FirContractDescription?.getParameterCallsEffectDeclaration(index: Int): ConeCallsEffectDeclaration? {
