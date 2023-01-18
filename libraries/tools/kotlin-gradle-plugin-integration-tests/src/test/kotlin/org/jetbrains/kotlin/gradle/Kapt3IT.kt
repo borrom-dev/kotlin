@@ -1036,4 +1036,26 @@ open class Kapt3IT : Kapt3BaseIT() {
             build("assemble")
         }
     }
+
+    @DisplayName("KT-53135: check that JVM IR backend is enabled by default by verifying that repeatable annotations are supported")
+    @GradleTest
+    fun testRepeatableAnnotations(gradleVersion: GradleVersion) {
+        project("repeatableAnnotations".withPrefix, gradleVersion) {
+            build("build") {
+                assertKaptSuccessful()
+                assertTasksExecuted(":kaptGenerateStubsKotlin", ":kaptKotlin", ":compileKotlin")
+            }
+        }
+    }
+
+    @DisplayName("KT-53135: check that JVM IR backend is disabled if kapt.use.jvm.ir=false is specified in gradle.properties")
+    @GradleTest
+    fun testRepeatableAnnotationsWithOldJvmBackend(gradleVersion: GradleVersion) {
+        project("repeatableAnnotationsWithOldJvmBackend".withPrefix, gradleVersion) {
+            build("build") {
+                assertKaptSuccessful()
+                assertTasksExecuted(":kaptGenerateStubsKotlin", ":kaptKotlin", ":compileKotlin")
+            }
+        }
+    }
 }

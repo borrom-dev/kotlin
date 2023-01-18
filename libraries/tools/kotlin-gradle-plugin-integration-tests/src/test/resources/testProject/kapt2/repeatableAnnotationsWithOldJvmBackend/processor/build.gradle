@@ -1,0 +1,15 @@
+plugins {
+    id "java"
+    id "org.jetbrains.kotlin.jvm"
+}
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+
+dependencies {
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+}
+
+compileKotlin.kotlinOptions.allWarningsAsErrors = true
