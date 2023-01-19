@@ -521,7 +521,7 @@ fun FirExpression.isFunctional(
         else -> {
             // Either a functional type or a subtype of a class that has a contributed `invoke`.
             val coneType = typeRef.coneTypeSafe<ConeKotlinType>() ?: return false
-            if (coneType.isBuiltinFunctionalType(session)) {
+            if (coneType.isBuiltinFunctionalType(session) || coneType is ConeTypeVariableType) {
                 return true
             }
             val classLikeExpectedFunctionType = expectedFunctionType?.lowerBoundIfFlexible() as? ConeClassLikeType
