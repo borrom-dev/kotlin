@@ -9,6 +9,7 @@ import org.jetbrains.kotlin.builtins.functions.FunctionalTypeKind
 import org.jetbrains.kotlin.builtins.functions.FunctionalTypeKindExtractor
 import org.jetbrains.kotlin.fir.FirSession
 import org.jetbrains.kotlin.fir.FirSessionComponent
+import org.jetbrains.kotlin.fir.declarations.FirAnonymousFunction
 import org.jetbrains.kotlin.fir.symbols.impl.FirFunctionSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirNamedFunctionSymbol
 import org.jetbrains.kotlin.name.FqName
@@ -26,7 +27,8 @@ abstract class FirFunctionalTypeKindService : FirSessionComponent {
 
     abstract fun extractSingleSpecialKindForFunction(functionSymbol: FirNamedFunctionSymbol): FunctionalTypeKind?
     abstract fun extractAllSpecialKindsForFunction(functionSymbol: FirNamedFunctionSymbol): List<FunctionalTypeKind>
-
+    abstract fun extractSingleSpecialKindForAnonymousFunction(function: FirAnonymousFunction): FunctionalTypeKind?
+    abstract fun extractAllSpecialKindsForAnonymousFunction(function: FirAnonymousFunction): List<FunctionalTypeKind>
     abstract fun extractAllSpecialKindsForFunctionalTypeRef(typeRef: FirFunctionTypeRef): List<FunctionalTypeKind>
 }
 

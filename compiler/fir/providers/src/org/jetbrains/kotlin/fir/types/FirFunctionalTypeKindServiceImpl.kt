@@ -8,6 +8,7 @@ package org.jetbrains.kotlin.fir.types
 import org.jetbrains.kotlin.builtins.functions.FunctionalTypeKind
 import org.jetbrains.kotlin.builtins.functions.FunctionalTypeKindExtractor
 import org.jetbrains.kotlin.fir.FirSession
+import org.jetbrains.kotlin.fir.declarations.FirAnonymousFunction
 import org.jetbrains.kotlin.fir.declarations.toAnnotationClassId
 import org.jetbrains.kotlin.fir.declarations.utils.isSuspend
 import org.jetbrains.kotlin.fir.extensions.FirFunctionalTypeKindExtension
@@ -60,6 +61,15 @@ class FirFunctionalTypeKindServiceImpl(private val session: FirSession) : FirFun
 
     override fun extractAllSpecialKindsForFunction(functionSymbol: FirNamedFunctionSymbol): List<FunctionalTypeKind> {
         return extractSpecialKindsImpl(functionSymbol, { isSuspend }, { resolvedAnnotationClassIds })
+    }
+
+    override fun extractSingleSpecialKindForAnonymousFunction(function: FirAnonymousFunction): FunctionalTypeKind? {
+        if (nonReflectKindsFromExtensions.isEmpty()) return null
+        return extractAllSpecialKindsForAnonymousFunction(function).singleOrNull()
+    }
+
+    override fun extractAllSpecialKindsForAnonymousFunction(function: FirAnonymousFunction): List<FunctionalTypeKind> {
+        return extractSpecialKindsImpl(function, { false }, { annotations.mapNotNull { it.toAnnotationClassId(session) } })
     }
 
     override fun extractAllSpecialKindsForFunctionalTypeRef(typeRef: FirFunctionTypeRef): List<FunctionalTypeKind> {
