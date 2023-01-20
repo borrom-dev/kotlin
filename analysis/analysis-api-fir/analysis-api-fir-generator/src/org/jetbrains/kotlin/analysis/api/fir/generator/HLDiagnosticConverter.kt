@@ -9,6 +9,7 @@ import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.KtSourceElement
 import org.jetbrains.kotlin.analysis.api.symbols.*
 import org.jetbrains.kotlin.analysis.api.types.KtType
+import org.jetbrains.kotlin.builtins.functions.FunctionalTypeKind
 import org.jetbrains.kotlin.config.LanguageFeature
 import org.jetbrains.kotlin.config.LanguageVersionSettings
 import org.jetbrains.kotlin.contracts.description.EventOccurrencesRange
@@ -363,6 +364,7 @@ internal object FirToKtConversionCreator {
         DeprecationInfo::class,
         CallableId::class,
         ClassKind::class,
+        FunctionalTypeKind::class,
     )
 
     private val KType.kClass: KClass<*>

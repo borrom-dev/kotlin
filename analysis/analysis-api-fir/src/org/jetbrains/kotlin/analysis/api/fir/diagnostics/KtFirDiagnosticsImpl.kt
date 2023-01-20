@@ -16,6 +16,7 @@ import org.jetbrains.kotlin.analysis.api.symbols.KtTypeParameterSymbol
 import org.jetbrains.kotlin.analysis.api.symbols.KtVariableLikeSymbol
 import org.jetbrains.kotlin.analysis.api.symbols.KtVariableSymbol
 import org.jetbrains.kotlin.analysis.api.types.KtType
+import org.jetbrains.kotlin.builtins.functions.FunctionalTypeKind
 import org.jetbrains.kotlin.config.LanguageFeature
 import org.jetbrains.kotlin.config.LanguageVersionSettings
 import org.jetbrains.kotlin.contracts.description.EventOccurrencesRange
@@ -1529,6 +1530,12 @@ internal class NextAmbiguityImpl(
     override val firDiagnostic: KtPsiDiagnostic,
     override val token: KtLifetimeToken,
 ) : KtFirDiagnostic.NextAmbiguity(), KtAbstractFirDiagnostic<PsiElement>
+
+internal class AmbiguousFunctionalTypeKindImpl(
+    override val kinds: List<FunctionalTypeKind>,
+    override val firDiagnostic: KtPsiDiagnostic,
+    override val token: KtLifetimeToken,
+) : KtFirDiagnostic.AmbiguousFunctionalTypeKind(), KtAbstractFirDiagnostic<PsiElement>
 
 internal class NoContextReceiverImpl(
     override val contextReceiverRepresentation: KtType,
