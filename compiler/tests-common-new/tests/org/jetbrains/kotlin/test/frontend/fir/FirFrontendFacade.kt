@@ -158,8 +158,8 @@ open class FirFrontendFacade(
                 regularModules,
                 dependsOnModules,
                 friendModules,
-                module.targetPlatform,
-                module.targetPlatform.getAnalyzerServices()
+                mainModule.targetPlatform,
+                mainModule.targetPlatform.getAnalyzerServices()
             )
 
             moduleInfoProvider.registerModuleData(module, moduleData)
