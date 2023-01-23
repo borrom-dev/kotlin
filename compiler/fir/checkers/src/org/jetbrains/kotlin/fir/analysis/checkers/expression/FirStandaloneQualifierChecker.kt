@@ -22,7 +22,7 @@ import org.jetbrains.kotlin.fir.types.isUnit
 object FirStandaloneQualifierChecker : FirResolvedQualifierChecker() {
     override fun check(expression: FirResolvedQualifier, context: CheckerContext, reporter: DiagnosticReporter) {
         val lastQualifiedAccess = context.qualifiedAccessOrAnnotationCalls.lastOrNull() as? FirQualifiedAccess
-        // Note: qualifier isn't standalone when it's in receiver or getClass position
+        // Note: qualifier isn't standalone when it's in receiver (SomeClass.foo) or getClass (SomeClass::class) position
         if (lastQualifiedAccess?.explicitReceiver === expression || lastQualifiedAccess?.dispatchReceiver === expression) return
         val lastGetClass = context.getClassCalls.lastOrNull()
         if (lastGetClass?.argument === expression) return
