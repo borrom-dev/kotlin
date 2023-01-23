@@ -22,6 +22,8 @@ open class KotlinJsIrTargetConfigurator() :
     KotlinOnlyTargetConfigurator<KotlinJsIrCompilation, KotlinJsIrTarget>(true),
     KotlinTargetWithTestsConfigurator<KotlinJsReportAggregatingTestRun, KotlinJsIrTarget> {
 
+    override val runtimeIncludesCompilationOutputs: Boolean = false
+
     override val testRunClass: Class<KotlinJsReportAggregatingTestRun> get() = KotlinJsReportAggregatingTestRun::class.java
 
     override val archiveType: String
