@@ -74,7 +74,7 @@ final class FileChannelWithSizeTracking {
         return myPath + "@" + Integer.toHexString(hashCode());
     }
 
-    public void force() throws IOException {
+    private void force() throws IOException {
         if (LOG.isTraceEnabled()) {
             LOG.trace("Forcing:" + this + "," + Thread.currentThread() );
         }
