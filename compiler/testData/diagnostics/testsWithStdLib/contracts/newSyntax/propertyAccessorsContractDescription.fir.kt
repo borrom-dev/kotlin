@@ -1,3 +1,4 @@
+// LANGUAGE: +NiceContractSyntax
 import kotlin.contracts.*
 
 class A {

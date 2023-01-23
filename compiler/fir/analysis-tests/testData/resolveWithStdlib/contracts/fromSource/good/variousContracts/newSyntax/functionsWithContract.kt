@@ -1,3 +1,4 @@
+// LANGUAGE: +NiceContractSyntax
 import kotlin.contracts.*
 
 fun test1(arg: Any?) contract [

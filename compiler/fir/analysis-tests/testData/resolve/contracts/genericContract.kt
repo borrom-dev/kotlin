@@ -1,3 +1,4 @@
+// LANGUAGE: +NiceContractSyntax
 // WITH_STDLIB
 
 import kotlin.contracts.*

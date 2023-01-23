@@ -1,3 +1,4 @@
+// LANGUAGE: +NiceContractSyntax
 import kotlin.contracts.*
 
 fun printStr(str: String?) contract [

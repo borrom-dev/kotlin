@@ -1,3 +1,4 @@
+// LANGUAGE: +NiceContractSyntax
 // !DIAGNOSTICS: -UNUSED_VARIABLE
 
 import kotlin.contracts.*
