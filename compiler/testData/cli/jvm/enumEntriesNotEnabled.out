@@ -1,3 +1,12 @@
+warning: ATTENTION!
+This build uses unsafe internal compiler arguments:
+
+-XXLanguage:-EnumEntries
+
+This mode is not recommended for production use,
+as no stability/compatibility guarantees are given on
+compiler or generated code. Use it at your own risk!
+
 compiler/testData/cli/jvm/enumEntriesNotEnabled.kt:7:26: error: unresolved reference: entries
     val entries = MyEnum.entries
                          ^
