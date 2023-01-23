@@ -16,12 +16,12 @@ import org.jetbrains.kotlin.psi.*
 fun KtSuperTypeList.findEntry(fqNameToFind: String): KtSuperTypeListEntry? {
     val name = fqNameToFind.substringAfterLast(delimiter = '.', missingDelimiterValue = "")
     if (name.isEmpty()) {
-        return entries.find { it.typeAsUserType?.textMatches(fqNameToFind) == true }
+        return entries.find { it.typeAsUserType?.referencedName == fqNameToFind }
     }
 
     val qualifier = fqNameToFind.substringBeforeLast('.')
     val entries = entries.mapNotNull { entry -> entry.typeAsUserType?.let { entry to it } }
-        .filter { (_, type) -> type.referencedName == name && (type.qualifier?.textMatches(qualifier) != false) }
+        .filter { (_, type) -> type.referencedName == name && type.qualifier?.referencedName == qualifier }
         .ifEmpty { return null }
 
     return if (entries.size == 1) {
