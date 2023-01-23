@@ -298,14 +298,6 @@ object FirKotlinToJvmBytecodeCompiler {
         return if (syntaxErrors || diagnosticsReporter.hasErrors) null else FirResult(platformOutput, commonOutput)
     }
 
-    private fun buildResolveAndCheckFir(
-        session: FirSession,
-        ktFiles: List<KtFile>,
-        diagnosticsReporter: BaseDiagnosticsCollector
-    ): ModuleCompilerAnalyzedOutput {
-        return resolveAndCheckFir(session, session.buildFirFromKtFiles(ktFiles), diagnosticsReporter)
-    }
-
     private fun CompilationContext.runBackend(
         ktFiles: List<KtFile>,
         fir2IrResult: Fir2IrResult,
