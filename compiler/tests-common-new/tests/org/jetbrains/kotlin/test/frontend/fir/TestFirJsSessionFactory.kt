@@ -33,10 +33,9 @@ object TestFirJsSessionFactory {
         languageVersionSettings: LanguageVersionSettings,
         registerExtraComponents: ((FirSession) -> Unit),
     ): FirSession {
-        val repositories = configuration[JSConfigurationKeys.REPOSITORIES] ?: emptyList()
         val logger = configuration.resolverLogger
         val libraries = getAllJsDependenciesPaths(module, testServices)
-        val resolvedLibraries = jsResolveLibraries(libraries, repositories, logger).getFullResolvedList()
+        val resolvedLibraries = jsResolveLibraries(libraries, logger).getFullResolvedList()
 
         return FirJsSessionFactory.createJsLibrarySession(
             mainModuleName,

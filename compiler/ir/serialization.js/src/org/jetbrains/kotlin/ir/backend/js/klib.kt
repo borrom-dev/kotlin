@@ -486,7 +486,6 @@ class ModulesStructure(
 
     val allDependenciesResolution = jsResolveLibrariesWithoutDependencies(
         dependencies,
-        compilerConfiguration[JSConfigurationKeys.REPOSITORIES] ?: emptyList(),
         compilerConfiguration.resolverLogger
     )
 

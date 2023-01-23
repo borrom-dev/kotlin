@@ -36,23 +36,21 @@ class JsLibraryResolver(
 }
 
 // TODO: This is a temporary set of library resolver policies for js compiler.
-fun jsResolveLibraries(libraries: Collection<String>, repositories: Collection<String>, logger: Logger): KotlinLibraryResolveResult =
+fun jsResolveLibraries(libraries: Collection<String>, logger: Logger): KotlinLibraryResolveResult =
     jsResolveLibrariesWithoutDependencies(
         libraries,
-        repositories,
         logger
     ).resolveWithDependencies()
 
 fun jsResolveLibrariesWithoutDependencies(
     libraries: Collection<String>,
-    repositories: Collection<String>,
     logger: Logger
 ): JsResolution {
     val unresolvedLibraries = libraries.map { UnresolvedLibrary(it, null) }
     val libraryAbsolutePaths = libraries.map { File(it).absolutePath }
     // Configure the resolver to only work with absolute paths for now.
     val libraryResolver = JsLibraryResolver(
-        repositories = repositories.toList(),
+        repositories = emptyList(),
         directLibs = libraryAbsolutePaths,
         distributionKlib = null,
         localKotlinDir = null,

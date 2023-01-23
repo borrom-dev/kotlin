@@ -271,9 +271,8 @@ fun resolveJsLibraries(
     configuration: CompilerConfiguration
 ): List<KotlinResolvedLibrary> {
     val paths = getAllJsDependenciesPaths(module, testServices)
-    val repositories = configuration[JSConfigurationKeys.REPOSITORIES] ?: emptyList()
     val logger = configuration.resolverLogger
-    return jsResolveLibraries(paths, repositories, logger).getFullResolvedList()
+    return jsResolveLibraries(paths, logger).getFullResolvedList()
 }
 
 private fun buildDependencyList(

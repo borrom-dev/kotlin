@@ -235,7 +235,7 @@ abstract class AbstractKlibTextTestCase : CodegenTestCase() {
     }
 
     private fun loadKlibFromPath(paths: List<String>): List<KotlinLibrary> {
-        val result = jsResolveLibraries(paths, emptyList(), DummyLogger)
+        val result = jsResolveLibraries(paths, DummyLogger)
         return result.getFullList(TopologicalLibraryOrder)
     }
 
