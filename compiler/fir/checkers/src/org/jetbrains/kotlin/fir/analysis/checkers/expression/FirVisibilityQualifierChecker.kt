@@ -38,6 +38,7 @@ object FirVisibilityQualifierChecker : FirResolvedQualifierChecker() {
         val firClassLikeDeclaration = symbol.fir
 
         // Note: errors on implicit receiver are already reported in coneDiagnosticToFirDiagnostic
+        // See e.g. diagnostics/tests/visibility/packagePrivateStaticViaInternal.fir.kt
         if (expression.source?.kind != KtFakeSourceElementKind.ImplicitReceiver &&
             !context.session.visibilityChecker.isClassLikeVisible(
                 firClassLikeDeclaration, context.session, firFile, context.containingDeclarations,
