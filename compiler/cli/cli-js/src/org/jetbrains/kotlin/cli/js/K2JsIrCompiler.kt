@@ -447,7 +447,7 @@ class K2JsIrCompiler : CLICompiler<K2JSCompilerArguments>() {
                 moduleSourceFiles,
                 environmentForJS.configuration,
                 sourceModule.jsFrontEndResult.jsAnalysisResult,
-                sortDependenciesByModuleDescriptor(sourceModule.descriptors),
+                sourceModule.allDependencies,
                 icData,
                 expectDescriptorToSymbol,
                 IrFactoryImpl,
