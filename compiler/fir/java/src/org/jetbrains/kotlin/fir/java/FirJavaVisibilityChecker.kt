@@ -43,6 +43,7 @@ object FirJavaVisibilityChecker : FirVisibilityChecker() {
                             symbol,
                             containingDeclarations,
                             // Note: dispatch receiver isn't relevant for Java protected visibility
+                            // See e.g. diagnostics/tests/visibility/packagePrivateStatic.kt
                             dispatchReceiver.takeUnless { symbol is FirCallableSymbol && symbol.isStatic },
                             ownerLookupTag,
                             session,

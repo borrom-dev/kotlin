@@ -331,14 +331,16 @@ abstract class FirVisibilityChecker : FirSessionComponent {
             )
         }
 
-        if (dispatchReceiver != null) {
+        // Note: private static symbols aren't accessible by use-site dispatch receiver
+        // See e.g. diagnostics/tests/scopes/inheritance/statics/hidePrivateByPublic.kt,
+        // private A.a becomes visible from outside without filtering static callables here
+        if (dispatchReceiver != null && (symbol !is FirCallableSymbol || !symbol.isStatic)) {
             val fir = symbol.fir
             val dispatchReceiverParameterClassSymbol =
                 (fir as? FirCallableDeclaration)
                     ?.propertyIfAccessor?.propertyIfBackingField
                     ?.dispatchReceiverClassLookupTagOrNull()?.toSymbol(session)
-                    ?: // Note: private static symbols aren't accessible by use-site dispatch receiver
-                    return symbol !is FirCallableSymbol || !symbol.isStatic
+                    ?: return true
 
             val dispatchReceiverParameterClassLookupTag = dispatchReceiverParameterClassSymbol.toLookupTag()
             val dispatchReceiverValueOwnerLookupTag =
