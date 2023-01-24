@@ -713,14 +713,12 @@ abstract class CommonCompilerArguments : CommonToolArguments() {
         if (useK2) {
             val message = when (explicitVersion?.usesK2) {
                 true ->
-                    "Compiler flag -Xuse-k2 (deprecated) is redundant because of \"-language-version $explicitVersion\";" +
-                            " please remove -Xuse-k2"
+                    "Deprecated compiler flag -Xuse-k2 is redundant because of \"-language-version $explicitVersion\" and should be removed"
                 false ->
-                    "Compiler flag -Xuse-k2 (deprecated) overrides \"-language-version $explicitVersion\";" +
-                            " please either replace both with \"-language-version 2.0\" (to keep using LV 2.0)" +
-                            " or remove -Xuse-k2 (to switch to LV $explicitVersion)"
+                    "Deprecated compiler flag -Xuse-k2 overrides \"-language-version $explicitVersion\" and sets LV 2.0 instead;" +
+                            " please remove -Xuse-k2 and use -language-version to choose between LV $explicitVersion and LV 2.0"
                 null ->
-                    "Compiler flag -Xuse-k2 is deprecated; please replace it with \"-language-version 2.0\""
+                    "Compiler flag -Xuse-k2 is deprecated; please use \"-language-version 2.0\" instead"
             }
             collector.report(CompilerMessageSeverity.STRONG_WARNING, message)
         }
