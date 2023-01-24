@@ -128,7 +128,7 @@ fun generateKLib(
 ) {
     val files = (depsDescriptors.mainModule as MainModule.SourceFiles).files.map(::KtPsiSourceFile)
     val configuration = depsDescriptors.compilerConfiguration
-    val allDependencies = depsDescriptors.allDependencies.map { it }
+    val allDependencies = depsDescriptors.allDependencies
     val messageLogger = configuration.irMessageLogger
 
     serializeModuleIntoKlib(
@@ -202,7 +202,7 @@ fun loadIr(
     val project = depsDescriptors.project
     val mainModule = depsDescriptors.mainModule
     val configuration = depsDescriptors.compilerConfiguration
-    val allDependencies = depsDescriptors.allDependencies.map { it }
+    val allDependencies = depsDescriptors.allDependencies
     val errorPolicy = configuration.get(JSConfigurationKeys.ERROR_TOLERANCE_POLICY) ?: ErrorTolerancePolicy.DEFAULT
     val messageLogger = configuration.irMessageLogger
     val partialLinkageEnabled = configuration[JSConfigurationKeys.PARTIAL_LINKAGE] ?: false
