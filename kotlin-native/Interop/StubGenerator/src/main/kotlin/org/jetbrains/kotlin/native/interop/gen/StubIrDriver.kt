@@ -5,6 +5,8 @@
 package org.jetbrains.kotlin.native.interop.gen
 
 import kotlinx.metadata.klib.KlibModuleMetadata
+import org.jetbrains.kotlin.library.KLIB_PROPERTY_EXPORT_FORWARD_DECLARATIONS
+import org.jetbrains.kotlin.library.KLIB_PROPERTY_INCLUDED_FORWARD_DECLARATIONS
 import org.jetbrains.kotlin.native.interop.gen.jvm.GenerationMode
 import org.jetbrains.kotlin.native.interop.gen.jvm.InteropConfiguration
 import org.jetbrains.kotlin.native.interop.gen.jvm.KotlinPlatform
@@ -93,7 +95,24 @@ class StubIrContext(
                     "$cnamesStructsPackageName.${getKotlinName(it)}"
                 }
 
-        properties["exportForwardDeclarations"] = exportForwardDeclarations.joinToString(" ")
+        val includedForwardDeclarations = mutableListOf<String>()
+        includedForwardDeclarations.addAll(exportForwardDeclarations)
+
+        // TODO: should we add meta classes?
+        nativeIndex.objCClasses
+                .filter { it.isForwardDeclaration && it.shouldBeIncludedIntoKotlinAPI() }
+                .mapTo(includedForwardDeclarations) {
+                    "$objcnamesClassesPackageName.${it.kotlinClassName(isMeta = false)}"
+                }
+
+        nativeIndex.objCProtocols
+                .filter { it.isForwardDeclaration }
+                .mapTo(includedForwardDeclarations) {
+                    "$objcnamesProtocolsPackageName.${it.kotlinClassName(isMeta = false)}"
+                }
+
+        properties[KLIB_PROPERTY_EXPORT_FORWARD_DECLARATIONS] = exportForwardDeclarations.joinToString(" ")
+        properties[KLIB_PROPERTY_INCLUDED_FORWARD_DECLARATIONS] = includedForwardDeclarations.joinToString(" ")
 
         // TODO: consider exporting Objective-C class and protocol forward refs.
     }
