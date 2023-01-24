@@ -17,8 +17,8 @@ import org.jetbrains.kotlin.resolve.JVM_INLINE_ANNOTATION_CLASS_ID
 
 object FirJvmExposeBoxedChecker : FirRegularClassChecker() {
     override fun check(declaration: FirRegularClass, context: CheckerContext, reporter: DiagnosticReporter) {
-        val jvmInlineAnnotation = declaration.getAnnotationByClassId(JVM_INLINE_ANNOTATION_CLASS_ID)
-        val jvmExposeBoxedAnnotation = declaration.getAnnotationByClassId(JVM_EXPOSE_BOXED_ANNOTATION_CLASS_ID)
+        val jvmInlineAnnotation = declaration.getAnnotationByClassId(JVM_INLINE_ANNOTATION_CLASS_ID, context.session)
+        val jvmExposeBoxedAnnotation = declaration.getAnnotationByClassId(JVM_EXPOSE_BOXED_ANNOTATION_CLASS_ID, context.session)
 
         if ((jvmInlineAnnotation == null || !declaration.isInline) && jvmExposeBoxedAnnotation != null) {
             reporter.reportOn(jvmExposeBoxedAnnotation.source, FirJvmErrors.JVM_EXPOSE_BOXED_WITHOUT_INLINE, context)

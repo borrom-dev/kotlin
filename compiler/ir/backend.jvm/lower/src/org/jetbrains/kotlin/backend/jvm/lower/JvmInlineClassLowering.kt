@@ -33,7 +33,6 @@ import org.jetbrains.kotlin.ir.util.*
 import org.jetbrains.kotlin.ir.visitors.IrElementTransformerVoid
 import org.jetbrains.kotlin.name.JvmNames
 import org.jetbrains.kotlin.name.Name
-import org.jetbrains.kotlin.resolve.JVM_EXPOSE_BOXED_ANNOTATION_FQ_NAME
 import org.jetbrains.kotlin.resolve.JVM_INLINE_ANNOTATION_FQ_NAME
 
 /**
@@ -113,42 +112,11 @@ internal class JvmInlineClassLowering(
             it == primaryConstructor || (it is IrFunction && it.isInlineClassFieldGetter && !it.visibility.isPublicAPI)
         }
 
-        buildInlineClassConstructorForBoxing(declaration, primaryConstructor)
-        buildInlineClassConstructorsForJava(declaration, primaryConstructor)
+        buildInlineClassConstructors(declaration, primaryConstructor)
         buildBoxFunction(declaration)
         buildUnboxFunction(declaration)
         buildSpecializedEqualsMethodIfNeeded(declaration)
         addJvmInlineAnnotation(declaration)
-    }
-
-    private fun buildInlineClassConstructorsForJava(valueClass: IrClass, primaryConstructor: IrConstructor) {
-        if (!valueClass.hasAnnotation(JvmNames.JVM_EXPOSE_BOXED)) return
-        valueClass.addConstructor {
-            updateFrom(primaryConstructor)
-            returnType = primaryConstructor.returnType
-            isPrimary = false
-        }.apply constructor@{
-            // Don't create a default argument stub for the primary constructor
-            for (param in primaryConstructor.valueParameters) {
-                param.defaultValue = null
-            }
-            copyParameterDeclarationsFrom(primaryConstructor)
-            annotations = primaryConstructor.annotations
-            val constructorImpl = checkNotNull(context.inlineClassReplacements.getReplacementFunction(primaryConstructor)) {
-                "No replacement function present for ${primaryConstructor.dump()}"
-            }
-            body = context.createIrBuilder(symbol).irBlockBody(this) {
-                +irDelegatingConstructorCall(context.irBuiltIns.anyClass.owner.constructors.single())
-                +irSetField(
-                    irGet(valueClass.thisReceiver!!),
-                    getInlineClassBackingField(valueClass),
-                    irGet(valueParameters[0])
-                )
-                +irCall(constructorImpl).apply {
-                    putValueArgument(0, irGet(valueParameters[0]))
-                }
-            }
-        }
     }
 
     private fun addJvmInlineAnnotation(valueClass: IrClass) {
@@ -196,16 +164,21 @@ internal class JvmInlineClassLowering(
 
         // Replacing original with boxed function for Java
         if (takesOrReturnsExposeBoxedClass && !function.isEquals()) {
+            function.origin = JvmLoweredDeclarationOrigin.FUNCTION_WITH_EXPOSED_INLINE_CLASS
+
             function.body = context.createIrBuilder(function.symbol).irBlockBody(function) {
                 +irReturn(irCall(replacement).apply {
-                    for ((idx, parameter) in replacement.valueParameters.withIndex()) {
+                    function.dispatchReceiverParameter?.let {
+                        putValueArgument(0, irGet(it))
+                    }
+                    for ((idx, parameter) in (function.valueParameters).withIndex()) {
                         val paramClass = parameter.type.classOrNull?.owner
 
                         if (paramClass?.hasAnnotation(JvmNames.JVM_EXPOSE_BOXED) == true) {
                             val unboxImpl = this@JvmInlineClassLowering.context.inlineClassReplacements.getUnboxFunction(paramClass)
-                            putValueArgument(idx, irCall(unboxImpl).apply { dispatchReceiver = irGet(parameter) })
+                            putValueArgument(idx + 1, irCall(unboxImpl).apply { dispatchReceiver = irGet(parameter) })
                         } else {
-                            putValueArgument(idx, irGet(parameter))
+                            putValueArgument(idx + 1, irGet(parameter))
                         }
                     }
                 }.let {
@@ -285,17 +258,17 @@ internal class JvmInlineClassLowering(
         }
 
         if (constructor.parentAsClass.hasAnnotation(JvmNames.JVM_EXPOSE_BOXED)) {
-            constructor.body = context.createIrBuilder(constructor.symbol).irBlockBody(constructor) {
-                +irDelegatingConstructorCall(context.irBuiltIns.anyClass.owner.constructors.single())
-                +irSetField(
-                    irGet(constructor.parentAsClass.thisReceiver!!),
-                    getInlineClassBackingField(constructor.parentAsClass),
-                    irGet(constructor.valueParameters[0])
-                )
-                +irCall(replacement).apply {
-                    putValueArgument(0, irGet(constructor.valueParameters[0]))
-                }
-            }
+//            constructor.body = context.createIrBuilder(constructor.symbol).irBlockBody(constructor) {
+//                +irDelegatingConstructorCall(context.irBuiltIns.anyClass.owner.constructors.single())
+//                +irSetField(
+//                    irGet(constructor.parentAsClass.thisReceiver!!),
+//                    getInlineClassBackingField(constructor.parentAsClass),
+//                    irGet(constructor.valueParameters[0])
+//                )
+//                +irCall(replacement).apply {
+//                    putValueArgument(0, irGet(constructor.valueParameters[0]))
+//                }
+//            }
             return listOf(constructor, replacement)
         }
 
@@ -522,8 +495,8 @@ internal class JvmInlineClassLowering(
         return super.visitSetValue(expression)
     }
 
-    private fun buildInlineClassConstructorForBoxing(valueClass: IrClass, irConstructor: IrConstructor) {
-        // Add the default primary constructor
+    private fun buildInlineClassConstructors(valueClass: IrClass, irConstructor: IrConstructor) {
+        // Add the primary constructor for boxing
         valueClass.addConstructor {
             updateFrom(irConstructor)
             visibility = DescriptorVisibilities.PRIVATE
@@ -553,7 +526,9 @@ internal class JvmInlineClassLowering(
 
         // Add a static bridge method to the primary constructor. This contains
         // null-checks, default arguments, and anonymous initializers.
-        val constructorImpl = context.inlineClassReplacements.getReplacementFunction(irConstructor)!!
+        val constructorImpl = checkNotNull(context.inlineClassReplacements.getReplacementFunction(irConstructor)) {
+            "No replacement function present for ${irConstructor.dump()}"
+        }
 
         val initBlocks = valueClass.declarations.filterIsInstance<IrAnonymousInitializer>()
 
@@ -568,6 +543,39 @@ internal class JvmInlineClassLowering(
                 }
             }
             +irReturn(irGet(thisValue))
+        }
+
+        if (valueClass.hasAnnotation(JvmNames.JVM_EXPOSE_BOXED)) {
+            // Add the primary constructor for Java
+            valueClass.addConstructor {
+                updateFrom(irConstructor)
+                returnType = irConstructor.returnType
+                isPrimary = false
+            }.apply constructor@{
+                // Don't create a default argument stub for the primary constructor
+                for (param in irConstructor.valueParameters) {
+                    param.defaultValue = null
+                }
+                copyParameterDeclarationsFrom(irConstructor)
+                annotations = irConstructor.annotations
+                body = context.createIrBuilder(symbol).irBlockBody(this) {
+                    +irDelegatingConstructorCall(context.irBuiltIns.anyClass.owner.constructors.single())
+                    +irSetField(
+                        irGet(valueClass.thisReceiver!!),
+                        getInlineClassBackingField(valueClass),
+                        irGet(valueParameters[0])
+                    )
+                    val argument = constructorImpl.valueParameters[0]
+                    val thisValue =
+                        irTemporary(coerceInlineClasses(irGet(argument), argument.type, constructorImpl.returnType, skipCast = true))
+                    valueMap[valueClass.thisReceiver!!.symbol] = thisValue
+                    for (initBlock in initBlocks) {
+                        for (stmt in initBlock.body.statements) {
+                            +stmt.transformStatement(this@JvmInlineClassLowering).patchDeclarationParents(constructorImpl)
+                        }
+                    }
+                }
+            }
         }
 
         valueClass.declarations.removeAll(initBlocks)
