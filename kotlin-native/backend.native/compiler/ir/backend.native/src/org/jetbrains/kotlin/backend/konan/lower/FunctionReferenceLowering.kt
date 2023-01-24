@@ -154,9 +154,14 @@ internal class FunctionReferenceLowering(val generationState: NativeGenerationSt
                     break
                 }
 
-                if (!expression.type.isFunction() && !expression.type.isKFunction()
-                        && !expression.type.isKSuspendFunction()) {
+                if (!expression.type.isFunction() && !expression.type.isKFunction() &&
+                        !expression.type.isKSuspendFunction() && !expression.type.isSuspendFunction()) {
                     // Not a subject of this lowering.
+                    return expression
+                }
+
+                if (expression.origin.isLambda && expression.type.isSuspendFunction()) {
+                    // Handled later by coroutines lowerings
                     return expression
                 }
 
@@ -202,12 +207,10 @@ internal class FunctionReferenceLowering(val generationState: NativeGenerationSt
         private val unboundFunctionParameters = functionParameters - boundFunctionParameters
 
         private val isLambda = functionReference.origin.isLambda
-        private val isKFunction = functionReference.type.isKFunction()
-        private val isKSuspendFunction = functionReference.type.isKSuspendFunction()
-
-        private val adaptedReferenceOriginalTarget: IrFunction? = functionReference.reflectionTarget?.owner
-
-        private val functionReferenceTarget = adaptedReferenceOriginalTarget ?: referencedFunction
+        private val isK = functionReference.type.isKFunction() || functionReference.type.isKSuspendFunction()
+        private val isSuspend = functionReference.type.isSuspendFunction() || functionReference.type.isKSuspendFunction()
+        private val adaptedReferenceOriginalTarget = referencedFunction.getAdapteeFromAdaptedForReferenceFunction()
+        private val functionReferenceTarget = adaptedReferenceOriginalTarget ?:referencedFunction
 
         /**
          * The first element of a pair is a type parameter of [referencedFunction], the second element is its argument in
@@ -309,8 +312,8 @@ internal class FunctionReferenceLowering(val generationState: NativeGenerationSt
                 )
             }
             val superClass = when {
-                isKSuspendFunction -> kSuspendFunctionImplSymbol.typeWith(functionReturnType)
                 isLambda -> irBuiltIns.anyType
+                isSuspend -> kSuspendFunctionImplSymbol.typeWith(functionReturnType)
                 else -> kFunctionImplSymbol.typeWith(functionReturnType)
             }
             val superTypes = mutableListOf(superClass)
@@ -322,12 +325,12 @@ internal class FunctionReferenceLowering(val generationState: NativeGenerationSt
             } else {
                 val numberOfParameters = unboundFunctionParameters.size
                 val functionParameterAndReturnTypes = functionParameterTypes + functionReturnType
-                if (isKSuspendFunction) {
-                    val suspendFunctionClass = symbols.kSuspendFunctionN(numberOfParameters).owner
+                if (isSuspend) {
+                    val suspendFunctionClass = (if (isK) symbols.kSuspendFunctionN(numberOfParameters) else symbols.suspendFunctionN(numberOfParameters)).owner
                     superTypes += suspendFunctionClass.typeWith(functionParameterAndReturnTypes)
                     transformedSuperMethod = suspendFunctionClass.invokeFun!!
                 } else {
-                    val functionClass = (if (isKFunction) symbols.kFunctionN(numberOfParameters) else symbols.functionN(numberOfParameters)).owner
+                    val functionClass = (if (isK) symbols.kFunctionN(numberOfParameters) else symbols.functionN(numberOfParameters)).owner
                     superTypes += functionClass.typeWith(functionParameterAndReturnTypes)
                     transformedSuperMethod = functionClass.invokeFun!!
                 }
@@ -417,7 +420,7 @@ internal class FunctionReferenceLowering(val generationState: NativeGenerationSt
 
             body = context.createIrBuilder(symbol, startOffset, endOffset).irBlockBody {
                 val superConstructor = when {
-                    isKSuspendFunction -> kSuspendFunctionImplConstructorSymbol.owner
+                    this@FunctionReferenceBuilder.isSuspend -> kSuspendFunctionImplConstructorSymbol.owner
                     isLambda -> irBuiltIns.anyClass.owner.constructors.single()
                     else -> kFunctionImplConstructorSymbol.owner
                 }
@@ -452,7 +455,7 @@ internal class FunctionReferenceLowering(val generationState: NativeGenerationSt
                 listOfNotNull(
                         (1 shl 0).takeIf { referencedFunction.isSuspend },
                         (1 shl 1).takeIf { hasVarargMappedToElement() },
-                        (1 shl 2).takeIf { adaptedReferenceOriginalTarget?.isSuspend == false && referencedFunction.isSuspend },
+                        (1 shl 2).takeIf { isSuspendConversion() },
                         (1 shl 3).takeIf { isCoercedToUnit() },
                         (1 shl 4).takeIf { isFunInterfaceConstructorAdapter() }
                 ).sum()
@@ -468,6 +471,9 @@ internal class FunctionReferenceLowering(val generationState: NativeGenerationSt
 
         private fun isCoercedToUnit() =
                 adaptedReferenceOriginalTarget?.returnType?.isUnit() == false && referencedFunction.returnType.isUnit()
+
+        private fun isSuspendConversion() =
+                adaptedReferenceOriginalTarget?.isSuspend == false && referencedFunction.isSuspend
 
         private fun hasVarargMappedToElement(): Boolean {
             if (adaptedReferenceOriginalTarget == null) return false

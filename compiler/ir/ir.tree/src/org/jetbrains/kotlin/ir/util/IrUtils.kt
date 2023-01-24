@@ -1368,3 +1368,21 @@ val IrFunction.isValueClassTypedEquals: Boolean
                 && contextReceiverParametersCount == 0 && extensionReceiverParameter == null
                 && (parentClass.isValue)
     }
+
+fun IrFunction.getAdapteeFromAdaptedForReferenceFunction() : IrFunction? {
+    if (origin != IrDeclarationOrigin.ADAPTER_FOR_CALLABLE_REFERENCE) return null
+    // The body of a callable reference adapter contains either only a call, or an IMPLICIT_COERCION_TO_UNIT type operator
+    // applied to a call. That call's target is the original function which we need to get owner/name/signature.
+    fun unknownStructure(): Nothing = throw UnsupportedOperationException("Unknown structure of ADAPTER_FOR_CALLABLE_REFERENCE: ${dump()}")
+    val call = when (val statement = body?.statements?.singleOrNull() ?: unknownStructure()) {
+        is IrTypeOperatorCall -> {
+            if (statement.operator != IrTypeOperator.IMPLICIT_COERCION_TO_UNIT) unknownStructure()
+            statement.argument
+        }
+        is IrReturn -> statement.value
+        else -> statement
+    }
+    if (call is IrReturnableBlock) return (call.inlineFunctionSymbol ?: unknownStructure()).owner
+    if (call !is IrFunctionAccessExpression) { unknownStructure() }
+    return call.symbol.owner
+}
