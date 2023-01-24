@@ -573,6 +573,7 @@ object NodeConfigurator : AbstractFieldConfigurator<FirTreeBuilder>(FirTreeBuild
 
         getClassCall.configure {
             +field("argument", expression)
+            +booleanField("lhsIsDefinitelyExpression")
         }
 
         wrappedArgumentExpression.configure {

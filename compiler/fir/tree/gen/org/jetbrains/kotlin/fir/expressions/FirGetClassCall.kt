@@ -21,6 +21,7 @@ abstract class FirGetClassCall : FirExpression(), FirCall {
     abstract override val annotations: List<FirAnnotation>
     abstract override val argumentList: FirArgumentList
     abstract val argument: FirExpression
+    abstract val lhsIsDefinitelyExpression: Boolean
 
     override fun <R, D> accept(visitor: FirVisitor<R, D>, data: D): R = visitor.visitGetClassCall(this, data)
 

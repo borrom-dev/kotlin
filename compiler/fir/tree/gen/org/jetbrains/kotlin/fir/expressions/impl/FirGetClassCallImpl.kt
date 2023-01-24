@@ -27,6 +27,7 @@ internal class FirGetClassCallImpl(
     override var typeRef: FirTypeRef,
     override var annotations: MutableOrEmptyList<FirAnnotation>,
     override var argumentList: FirArgumentList,
+    override val lhsIsDefinitelyExpression: Boolean,
 ) : FirGetClassCall() {
     override val argument: FirExpression get() = argumentList.arguments.first()
 

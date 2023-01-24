@@ -9,6 +9,7 @@ class A {
 
 
 fun test() {
-    A::class
-    A.<!DEPRECATION!>Companion<!>::class
+    A::class // KClass<A>
+    A.<!DEPRECATION!>Companion<!>::class // KClass<A.Companion>
+    (<!DEPRECATION!>A<!>)::class // // KClass<A.Companion>
 }

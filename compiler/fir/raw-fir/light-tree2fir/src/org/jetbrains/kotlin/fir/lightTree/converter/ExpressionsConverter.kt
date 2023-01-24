@@ -12,6 +12,7 @@ import org.jetbrains.kotlin.ElementTypeUtils.getOperationSymbol
 import org.jetbrains.kotlin.ElementTypeUtils.isExpression
 import org.jetbrains.kotlin.KtFakeSourceElementKind
 import org.jetbrains.kotlin.KtLightSourceElement
+import org.jetbrains.kotlin.KtNodeTypes
 import org.jetbrains.kotlin.KtNodeTypes.*
 import org.jetbrains.kotlin.KtSourceElement
 import org.jetbrains.kotlin.descriptors.EffectiveVisibility
@@ -461,8 +462,14 @@ class ExpressionsConverter(
      */
     private fun convertClassLiteralExpression(classLiteralExpression: LighterASTNode): FirExpression {
         var firReceiverExpression: FirExpression? = null
+        var lhsIsParenthesized = false
         classLiteralExpression.forEachChildren {
-            if (it.isExpression()) firReceiverExpression = getAsFirExpression(it, "No receiver in class literal")
+            if (it.isExpression()) {
+                firReceiverExpression = getAsFirExpression(it, "No receiver in class literal")
+                if (it.tokenType == PARENTHESIZED) {
+                    lhsIsParenthesized = true
+                }
+            }
         }
 
         return buildGetClassCall {
@@ -471,6 +478,7 @@ class ExpressionsConverter(
                 firReceiverExpression
                     ?: buildErrorExpression(null, ConeSimpleDiagnostic("No receiver in class literal", DiagnosticKind.Syntax))
             )
+            lhsIsDefinitelyExpression = lhsIsParenthesized
         }
     }
 

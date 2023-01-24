@@ -221,6 +221,7 @@ object BuilderConfigurator : AbstractBuilderConfigurator<FirTreeBuilder>(FirTree
 
         builder(getClassCall) {
             parents += callBuilder
+            defaultFalse("lhsIsDefinitelyExpression")
         }
 
         builder(property) {
@@ -360,6 +361,7 @@ object BuilderConfigurator : AbstractBuilderConfigurator<FirTreeBuilder>(FirTree
         builder(resolvedQualifier) {
             parents += abstractResolvedQualifierBuilder
             defaultFalse("isNullableLHSForCallableReference")
+            withCopy()
         }
 
         builder(errorResolvedQualifier) {

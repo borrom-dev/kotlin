@@ -34,6 +34,7 @@ class FirGetClassCallBuilder : FirCallBuilder, FirAnnotationContainerBuilder, Fi
     override var typeRef: FirTypeRef = FirImplicitTypeRefImpl(null)
     override val annotations: MutableList<FirAnnotation> = mutableListOf()
     override lateinit var argumentList: FirArgumentList
+    var lhsIsDefinitelyExpression: Boolean = false
 
     override fun build(): FirGetClassCall {
         return FirGetClassCallImpl(
@@ -41,6 +42,7 @@ class FirGetClassCallBuilder : FirCallBuilder, FirAnnotationContainerBuilder, Fi
             typeRef,
             annotations.toMutableOrEmpty(),
             argumentList,
+            lhsIsDefinitelyExpression,
         )
     }
 

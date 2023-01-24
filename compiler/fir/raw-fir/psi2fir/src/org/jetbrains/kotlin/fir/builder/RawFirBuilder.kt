@@ -2715,6 +2715,7 @@ open class RawFirBuilder(
             return buildGetClassCall {
                 source = expression.toFirSourceElement()
                 argumentList = buildUnaryArgumentList(expression.receiverExpression.toFirExpression("No receiver in class literal"))
+                lhsIsDefinitelyExpression = expression.receiverExpression is KtParenthesizedExpression
             }
         }
 

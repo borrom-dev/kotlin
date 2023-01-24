@@ -81,3 +81,21 @@ inline fun buildResolvedQualifier(init: FirResolvedQualifierBuilder.() -> Unit):
     }
     return FirResolvedQualifierBuilder().apply(init).build()
 }
+
+@OptIn(ExperimentalContracts::class)
+inline fun buildResolvedQualifierCopy(original: FirResolvedQualifier, init: FirResolvedQualifierBuilder.() -> Unit): FirResolvedQualifier {
+    contract {
+        callsInPlace(init, kotlin.contracts.InvocationKind.EXACTLY_ONCE)
+    }
+    val copyBuilder = FirResolvedQualifierBuilder()
+    copyBuilder.source = original.source
+    copyBuilder.typeRef = original.typeRef
+    copyBuilder.annotations.addAll(original.annotations)
+    copyBuilder.packageFqName = original.packageFqName
+    copyBuilder.relativeClassFqName = original.relativeClassFqName
+    copyBuilder.symbol = original.symbol
+    copyBuilder.isNullableLHSForCallableReference = original.isNullableLHSForCallableReference
+    copyBuilder.nonFatalDiagnostics.addAll(original.nonFatalDiagnostics)
+    copyBuilder.typeArguments.addAll(original.typeArguments)
+    return copyBuilder.apply(init).build()
+}

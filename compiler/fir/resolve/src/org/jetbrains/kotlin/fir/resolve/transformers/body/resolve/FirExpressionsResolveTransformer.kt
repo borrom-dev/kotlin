@@ -36,6 +36,7 @@ import org.jetbrains.kotlin.fir.resolve.transformers.replaceLambdaArgumentInvoca
 import org.jetbrains.kotlin.fir.scopes.impl.isWrappedIntegerOperator
 import org.jetbrains.kotlin.fir.scopes.impl.isWrappedIntegerOperatorForUnsignedType
 import org.jetbrains.kotlin.fir.symbols.impl.FirCallableSymbol
+import org.jetbrains.kotlin.fir.symbols.impl.FirRegularClassSymbol
 import org.jetbrains.kotlin.fir.types.*
 import org.jetbrains.kotlin.fir.types.builder.buildErrorTypeRef
 import org.jetbrains.kotlin.fir.types.builder.buildResolvedTypeRef
@@ -960,11 +961,32 @@ open class FirExpressionsResolveTransformer(transformer: FirAbstractBodyResolveT
 
         val transformedGetClassCall = run {
             val argument = getClassCall.argument
-            val replacedArgument: FirExpression =
+            var replacedArgument: FirExpression =
                 if (argument is FirPropertyAccessExpression)
                     transformQualifiedAccessExpression(argument, dataForLhs, isUsedAsReceiver = true) as FirExpression
                 else
                     argument.transform(this, dataForLhs)
+
+            if (getClassCall.lhsIsDefinitelyExpression && replacedArgument is FirResolvedQualifier) {
+                val qualifier: FirResolvedQualifier = replacedArgument
+                if (qualifier.resolvedToCompanionObject) {
+                    val companionSymbol = (qualifier.symbol as? FirRegularClassSymbol)?.companionObjectSymbol
+                    if (companionSymbol != null) {
+                        replacedArgument = buildResolvedQualifierCopy(qualifier) {
+                            symbol = companionSymbol
+                            typeRef = qualifier.typeRef.withReplacedConeType(companionSymbol.defaultType())
+                            nonFatalDiagnostics += qualifier.nonFatalDiagnostics
+                            nonFatalDiagnostics += extractNonFatalDiagnostics(
+                                qualifier.source,
+                                explicitReceiver = null,
+                                symbol = companionSymbol,
+                                extraNotFatalDiagnostics = null,
+                                session.languageVersionSettings.apiVersion
+                            )
+                        }
+                    }
+                }
+            }
 
             getClassCall.argumentList.transformArguments(object : FirTransformer<Nothing?>() {
                 @Suppress("UNCHECKED_CAST")
