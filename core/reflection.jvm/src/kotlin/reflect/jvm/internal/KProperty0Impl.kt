@@ -28,9 +28,7 @@ internal open class KProperty0Impl<out V> : KProperty0<V>, KPropertyImpl<V> {
         container, name, signature, boundReceiver
     )
 
-    private val _getter = ReflectProperties.lazy { Getter(this) }
-
-    override val getter: Getter<V> get() = _getter()
+    override val getter: Getter<V> by lazy(PUBLICATION) { Getter(this) }
 
     override fun get(): V = getter.call()
 
@@ -52,9 +50,7 @@ internal class KMutableProperty0Impl<V> : KProperty0Impl<V>, KMutableProperty0<V
         container, name, signature, boundReceiver
     )
 
-    private val _setter = ReflectProperties.lazy { Setter(this) }
-
-    override val setter: Setter<V> get() = _setter()
+    override val setter: Setter<V> by lazy(PUBLICATION) { Setter(this) }
 
     override fun set(value: V) = setter.call(value)
 

@@ -15,6 +15,7 @@ import org.jetbrains.kotlin.resolve.isUnderlyingPropertyOfInlineClass
 import org.jetbrains.kotlin.serialization.deserialization.descriptors.DeserializedPropertyDescriptor
 import org.jetbrains.kotlin.types.TypeUtils
 import java.lang.reflect.*
+import kotlin.LazyThreadSafetyMode.PUBLICATION
 import kotlin.jvm.internal.CallableReference
 import kotlin.reflect.KFunction
 import kotlin.reflect.KMutableProperty
@@ -48,7 +49,7 @@ internal abstract class KPropertyImpl<out V> private constructor(
 
     override val isBound: Boolean get() = rawBoundReceiver != CallableReference.NO_RECEIVER
 
-    private val _javaField: ReflectProperties.LazyVal<Field?> = ReflectProperties.lazy {
+    val javaField: Field? by lazy(PUBLICATION) {
         when (val jvmSignature = RuntimeTypeMapper.mapPropertySignature(descriptor)) {
             is KotlinProperty -> {
                 val descriptor = jvmSignature.descriptor
@@ -74,8 +75,6 @@ internal abstract class KPropertyImpl<out V> private constructor(
             is MappedKotlinProperty -> null
         }
     }
-
-    val javaField: Field? get() = _javaField()
 
     protected fun computeDelegateSource(): Member? {
         if (!descriptor.isDelegated) return null
@@ -175,7 +174,7 @@ internal abstract class KPropertyImpl<out V> private constructor(
             property.descriptor.getter ?: DescriptorFactory.createDefaultGetter(property.descriptor, Annotations.EMPTY)
         }
 
-        override val caller: Caller<*> by ReflectProperties.lazy {
+        override val caller: Caller<*> by lazy(PUBLICATION) {
             computeCallerForAccessor(isGetter = true)
         }
 
@@ -196,7 +195,7 @@ internal abstract class KPropertyImpl<out V> private constructor(
             property.descriptor.setter ?: DescriptorFactory.createDefaultSetter(property.descriptor, Annotations.EMPTY, Annotations.EMPTY)
         }
 
-        override val caller: Caller<*> by ReflectProperties.lazy {
+        override val caller: Caller<*> by lazy(PUBLICATION) {
             computeCallerForAccessor(isGetter = false)
         }
 
