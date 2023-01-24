@@ -3,14 +3,13 @@
  * Use of this source code is governed by the Apache 2.0 license that can be found in the license/LICENSE.txt file.
  */
 
-package org.jetbrains.kotlin.js.testOld.engines
+package org.jetbrains.kotlin.wasm.test.tools
 
 import java.io.BufferedReader
 import java.io.File
 import java.io.InputStreamReader
 import java.lang.Boolean.getBoolean
 import kotlin.test.fail
-
 
 val toolLogsEnabled: Boolean = getBoolean("kotlin.js.test.verbose")
 
@@ -51,13 +50,3 @@ class ExternalTool(val path: String) {
 
 private fun escapeShellArgument(arg: String): String =
     "'${arg.replace("'", "'\\''")}'"
-
-class SpiderMonkeyEngine(
-    jsShellPath: String = System.getProperty("javascript.engine.path.SpiderMonkey")
-) {
-    private val jsShell = ExternalTool(jsShellPath)
-
-    fun runFile(file: String) {
-        jsShell.run("--wasm-gc", file)
-    }
-}

@@ -48,7 +48,6 @@ dependencies {
     testCompileOnly(project(":compiler:util"))
     testCompileOnly(intellijCore())
     testApi(project(":compiler:backend.js"))
-    testApi(project(":compiler:backend.wasm"))
     testApi(project(":js:js.translator"))
     testApi(project(":js:js.serializer"))
     testApi(project(":js:js.dce"))
@@ -318,7 +317,6 @@ fun Test.setUpJsBoxTests(jsEnabled: Boolean, jsIrEnabled: Boolean, firEnabled: B
         inputs.dir(rootDir.resolve("libraries/kotlin.test/js-ir/build/classes/kotlin/js/main"))
     }
 
-    exclude("org/jetbrains/kotlin/js/testOld/wasm/semantics/*")
     exclude("org/jetbrains/kotlin/js/testOld/api/*")
 
     if (jsEnabled && !jsIrEnabled) {
@@ -483,21 +481,6 @@ val mochaTest by task<MochaTestTask> {
 val runMocha by tasks.registering {
     dependsOn(jsTest)
     finalizedBy(mochaTest)
-}
-
-projectTest("wasmTest", true) {
-    setupV8()
-    setupSpiderMonkey()
-
-    include("org/jetbrains/kotlin/js/testOld/wasm/semantics/*")
-
-    dependsOn(":kotlin-stdlib-wasm:compileKotlinWasm")
-    systemProperty("kotlin.wasm.stdlib.path", "libraries/stdlib/wasm/build/classes/kotlin/wasm/main")
-
-    dependsOn(":kotlin-test:kotlin-test-wasm:compileKotlinWasm")
-    systemProperty("kotlin.wasm.kotlin.test.path", "libraries/kotlin.test/wasm/build/classes/kotlin/wasm/main")
-
-    setUpBoxTests()
 }
 
 projectTest("invalidationTest", jUnitMode = JUnitMode.JUnit4) {
