@@ -6,6 +6,7 @@
 package org.jetbrains.kotlin.idea.references
 
 import com.intellij.psi.tree.TokenSet
+import org.jetbrains.kotlin.KtFakeSourceElement
 import org.jetbrains.kotlin.KtFakeSourceElementKind
 import org.jetbrains.kotlin.analysis.api.fir.KtFirAnalysisSession
 import org.jetbrains.kotlin.analysis.api.fir.KtSymbolByFirBuilder
@@ -45,9 +46,7 @@ import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi
 import org.jetbrains.kotlin.psi.*
-import org.jetbrains.kotlin.psi.psiUtil.collectDescendantsOfType
-import org.jetbrains.kotlin.psi.psiUtil.getQualifiedExpressionForSelector
-import org.jetbrains.kotlin.psi.psiUtil.unwrapNullability
+import org.jetbrains.kotlin.psi.psiUtil.*
 import org.jetbrains.kotlin.util.OperatorNameConventions
 import org.jetbrains.kotlin.utils.addIfNotNull
 
@@ -394,13 +393,17 @@ internal object FirReferenceResolveHelper {
             return listOfNotNull((fir.dispatchReceiver.typeRef as? FirResolvedTypeRef)?.toTargetSymbol(session, symbolBuilder))
         }
         val implicitInvokeReceiver = if (fir is FirImplicitInvokeCall) {
-            fir.explicitReceiver?.unwrapSmartcastExpression() as? FirQualifiedAccessExpression
+            fir.explicitReceiver?.unwrapSmartcastExpression()
         } else {
             null
         }
-        val calleeReference = implicitInvokeReceiver?.calleeReference ?: fir.calleeReference
 
-        return calleeReference.toTargetSymbol(session, symbolBuilder, isInLabelReference = expression is KtLabelReferenceExpression)
+        return if (implicitInvokeReceiver is FirResolvedQualifier) {
+            getSymbolsForResolvedQualifier(implicitInvokeReceiver, expression, session, symbolBuilder)
+        } else {
+            val calleeReference = (implicitInvokeReceiver as? FirQualifiedAccessExpression)?.calleeReference ?: fir.calleeReference
+            calleeReference.toTargetSymbol(session, symbolBuilder, isInLabelReference = expression is KtLabelReferenceExpression)
+        }
     }
 
 
@@ -494,7 +497,9 @@ internal object FirReferenceResolveHelper {
         }
         val referencedClass = referencedSymbol.fir
         val referencedSymbolsByFir = listOfNotNull(symbolBuilder.buildSymbol(referencedSymbol))
-        val firSourcePsi = fir.source.psi ?: referencedSymbolsByFir
+        val firSourcePsi = fir.source.psi?.let { (it as? KtSimpleNameExpression)?.getQualifiedElement() ?: it }
+            ?: referencedSymbolsByFir.mapNotNull { it.psi }.singleOrNull()
+
         if (firSourcePsi !is KtDotQualifiedExpression) return referencedSymbolsByFir
 
         // When the source of an `FirResolvedQualifier` is a KtDotQualifiedExpression, we need to manually break up the qualified access and
@@ -506,7 +511,7 @@ internal object FirReferenceResolveHelper {
             var qualifiedAccess: KtDotQualifiedExpression = firSourcePsi
             val referencedClassId =
                 if ((referencedClass as? FirRegularClass)?.isCompanion == true &&
-                    (qualifiedAccess.selectorExpression as? KtNameReferenceExpression)?.getReferencedName() != referencedClass.classId.shortClassName.asString()
+                    (qualifiedAccess.selectorExpression?.referenceExpression() as? KtNameReferenceExpression)?.getReferencedName() != referencedClass.classId.shortClassName.asString()
                 ) {
                     // Remove the last companion name part if the qualified access does not contain it.
                     // This is needed because the companion name part is optional.
@@ -548,7 +553,7 @@ internal object FirReferenceResolveHelper {
 
             // Handle nested classes.
             while (classId != null) {
-                if (expression === qualifiedAccess.selectorExpression) {
+                if (expression === qualifiedAccess.selectorExpression?.referenceExpression()) {
                     return listOfNotNull(classId.toTargetPsi(session, symbolBuilder))
                 }
                 val outerClassId = classId.outerClassId
@@ -607,7 +612,7 @@ internal object FirReferenceResolveHelper {
         val result: MutableList<String> = mutableListOf()
         var current: KtExpression = this
         while (current is KtDotQualifiedExpression) {
-            result += (current.selectorExpression as? KtNameReferenceExpression)?.getReferencedName() ?: return null
+            result += (current.selectorExpression?.referenceExpression() as? KtNameReferenceExpression)?.getReferencedName() ?: return null
             current = current.receiverExpression
         }
         result += (current as? KtNameReferenceExpression)?.getReferencedName() ?: return null

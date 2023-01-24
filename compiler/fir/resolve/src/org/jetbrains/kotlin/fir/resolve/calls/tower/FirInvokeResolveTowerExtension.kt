@@ -286,7 +286,11 @@ private fun BodyResolveComponents.createExplicitReceiverForInvoke(
         is FirCallableSymbol<*> -> createExplicitReceiverForInvokeByCallable(
             candidate, info, invokeBuiltinExtensionMode, extensionReceiverExpression, symbol
         )
-        is FirRegularClassSymbol -> buildResolvedQualifierForClass(symbol, sourceElement = null)
+//        is FirRegularClassSymbol -> buildResolvedQualifierForClass(symbol, sourceElement = null)
+        is FirRegularClassSymbol -> buildResolvedQualifierForClass(
+            symbol,
+            sourceElement = (info.callSite as? FirFunctionCall)?.calleeReference?.source?.fakeElement(KtFakeSourceElementKind.ImplicitInvokeCall)
+        )
         is FirTypeAliasSymbol -> {
             val type = symbol.fir.expandedTypeRef.coneTypeUnsafe<ConeClassLikeType>().fullyExpandedType(session)
             val expansionRegularClassSymbol = type.lookupTag.toSymbolOrError(session)

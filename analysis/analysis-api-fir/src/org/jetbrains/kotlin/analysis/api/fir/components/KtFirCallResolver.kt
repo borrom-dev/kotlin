@@ -158,20 +158,26 @@ internal class KtFirCallResolver(
             }
         }
 
-        if (resolveCalleeExpressionOfFunctionCall && this is FirImplicitInvokeCall) {
-            // For implicit invoke, we resolve the calleeExpression of the CallExpression to the call that creates the receiver of this
-            // implicit invoke call. For example,
-            // ```
-            // fun test(f: () -> Unit) {
-            //   f() // calleeExpression `f` resolves to the local variable access, while `f()` resolves to the implicit `invoke` call.
-            //       // This way `f` is also the explicit receiver of this implicit `invoke` call
-            // }
-            // ```
-            return explicitReceiver?.toKtCallInfo(
-                psi,
-                resolveCalleeExpressionOfFunctionCall = false,
-                resolveFragmentOfCall = resolveFragmentOfCall
-            )
+        if (this is FirImplicitInvokeCall) {
+            if (psi is KtExpression && psi.getPossiblyQualifiedCallExpression() == null) {
+                return null
+            }
+
+            if (resolveCalleeExpressionOfFunctionCall) {
+                // For implicit invoke, we resolve the calleeExpression of the CallExpression to the call that creates the receiver of this
+                // implicit invoke call. For example,
+                // ```
+                // fun test(f: () -> Unit) {
+                //   f() // calleeExpression `f` resolves to the local variable access, while `f()` resolves to the implicit `invoke` call.
+                //       // This way `f` is also the explicit receiver of this implicit `invoke` call
+                // }
+                // ```
+                return explicitReceiver?.toKtCallInfo(
+                    (psi as? KtCallExpression)?.calleeExpression ?: psi,
+                    resolveCalleeExpressionOfFunctionCall = false,
+                    resolveFragmentOfCall = resolveFragmentOfCall
+                )
+            }
         }
 
         fun <T> transformErrorReference(call: FirResolvable, calleeReference: T): KtCallInfo where T : FirNamedReference, T : FirDiagnosticHolder {

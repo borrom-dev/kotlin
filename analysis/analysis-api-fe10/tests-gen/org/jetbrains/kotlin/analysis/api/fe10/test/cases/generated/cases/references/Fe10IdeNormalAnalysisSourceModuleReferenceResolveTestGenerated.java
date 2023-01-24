@@ -1112,6 +1112,30 @@ public class Fe10IdeNormalAnalysisSourceModuleReferenceResolveTestGenerated exte
         }
 
         @Test
+        @TestMetadata("objectWithInvoke1.kt")
+        public void testObjectWithInvoke1() throws Exception {
+            runTest("analysis/analysis-api/testData/referenceResolve/invoke/objectWithInvoke1.kt");
+        }
+
+        @Test
+        @TestMetadata("objectWithInvoke2.kt")
+        public void testObjectWithInvoke2() throws Exception {
+            runTest("analysis/analysis-api/testData/referenceResolve/invoke/objectWithInvoke2.kt");
+        }
+
+        @Test
+        @TestMetadata("objectWithInvoke3.kt")
+        public void testObjectWithInvoke3() throws Exception {
+            runTest("analysis/analysis-api/testData/referenceResolve/invoke/objectWithInvoke3.kt");
+        }
+
+        @Test
+        @TestMetadata("objectWithInvoke4.kt")
+        public void testObjectWithInvoke4() throws Exception {
+            runTest("analysis/analysis-api/testData/referenceResolve/invoke/objectWithInvoke4.kt");
+        }
+
+        @Test
         @TestMetadata("oneParam.kt")
         public void testOneParam() throws Exception {
             runTest("analysis/analysis-api/testData/referenceResolve/invoke/oneParam.kt");

@@ -7,6 +7,6 @@ object Conflict {
 fun test() {
     class Conflict(i: Int)
 
-    <caret>Conflict()
+    Conflict(<caret>)
 }
 
