@@ -42,7 +42,7 @@ object FirJavaVisibilityChecker : FirVisibilityChecker() {
                     if (canSeeProtectedMemberOf(
                             symbol,
                             containingDeclarations,
-                            // Note: dispatch receiver isn't relevant for Java protected visibility
+                            // Note: dispatch receiver isn't relevant for Java protected static
                             // See e.g. diagnostics/tests/visibility/packagePrivateStatic.kt
                             dispatchReceiver.takeUnless { symbol is FirCallableSymbol && symbol.isStatic },
                             ownerLookupTag,
