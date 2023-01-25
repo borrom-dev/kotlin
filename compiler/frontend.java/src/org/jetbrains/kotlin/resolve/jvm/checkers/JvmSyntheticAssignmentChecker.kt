@@ -6,11 +6,13 @@
 package org.jetbrains.kotlin.resolve.jvm.checkers
 
 import org.jetbrains.kotlin.descriptors.TypeParameterDescriptor
+import org.jetbrains.kotlin.diagnostics.Errors
 import org.jetbrains.kotlin.psi.KtBinaryExpression
 import org.jetbrains.kotlin.resolve.calls.checkers.AssignmentChecker
 import org.jetbrains.kotlin.resolve.calls.checkers.CallCheckerContext
 import org.jetbrains.kotlin.resolve.calls.tower.isSynthesized
 import org.jetbrains.kotlin.resolve.calls.util.getResolvedCall
+import org.jetbrains.kotlin.resolve.calls.util.getType
 import org.jetbrains.kotlin.resolve.jvm.diagnostics.ErrorsJvm
 import org.jetbrains.kotlin.synthetic.SyntheticJavaPropertyDescriptor
 import org.jetbrains.kotlin.types.IndexedParametersSubstitution
@@ -43,8 +45,20 @@ object JvmSyntheticAssignmentChecker : AssignmentChecker {
                 substitutionParameters.toTypedArray(), substitutionArguments.toTypedArray(), approximateContravariantCapturedTypes = true
             )
         )
-        val substitutedPropertyType = substitutor.substitute(propertyType.unwrap(), Variance.IN_VARIANCE)
-        if (substitutedPropertyType == null || !substitutedPropertyType.isNothing()) return
-        context.trace.report(ErrorsJvm.SYNTHETIC_SETTER_PROJECTED_OUT.on(left, resultingDescriptor))
+        val substitutedPropertyType = substitutor.substitute(propertyType.unwrap(), Variance.IN_VARIANCE) ?: return
+        if (substitutedPropertyType.isNothing()) {
+            context.trace.report(ErrorsJvm.SYNTHETIC_SETTER_PROJECTED_OUT.on(left, resultingDescriptor))
+            return
+        }
+        val rValue = assignmentExpression.right ?: return
+        val rValueType = rValue.getType(context.trace.bindingContext) ?: return
+        if (!context.callComponents.kotlinTypeChecker.isSubtypeOf(rValueType, substitutedPropertyType)) {
+            if (context.trace.bindingContext.diagnostics.forElement(rValue).none {
+                    it.factory == Errors.TYPE_MISMATCH || it.factory == Errors.CONSTANT_EXPECTED_TYPE_MISMATCH
+                }
+            ) {
+                context.trace.report(Errors.TYPE_MISMATCH_WARNING.on(rValue, substitutedPropertyType, rValueType))
+            }
+        }
     }
 }

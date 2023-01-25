@@ -31,6 +31,8 @@ fun foo(container: Container<*>, wrapper: Wrapper<String>) {
 
     container.simple = <!ASSIGNMENT_TYPE_MISMATCH!>"123"<!>
     container.setSimple(<!ARGUMENT_TYPE_MISMATCH!>"123"<!>)
+    container.simple = null
+    container.setSimple(null)
 }
 
 fun bar(container: Container<String>, wrapper: Wrapper<String>) {
@@ -56,18 +58,22 @@ fun dif(container: Container<String>, wrapper: Wrapper<Int>) {
     container.wrapper = <!ASSIGNMENT_TYPE_MISMATCH!>wrapper<!>
 }
 
-fun out(container: Container<out Any>, wrapper: Wrapper<String>) {
-    container.wrapper = <!ASSIGNMENT_TYPE_MISMATCH!>wrapper<!>
-    container.setWrapper(<!ARGUMENT_TYPE_MISMATCH!>wrapper<!>)
-    container.simple = <!ASSIGNMENT_TYPE_MISMATCH!>"123"<!>
-    container.setSimple(<!ARGUMENT_TYPE_MISMATCH!>"123"<!>)
-}
+object O
 
-fun inn(container: Container<in String>, wrapper: Wrapper<Any>) {
+fun out(container: Container<out Any>, wrapper: Wrapper<String>) {
     container.wrapper = <!ASSIGNMENT_TYPE_MISMATCH!>wrapper<!>
     container.setWrapper(<!ARGUMENT_TYPE_MISMATCH!>wrapper<!>)
     container.simple = <!ASSIGNMENT_TYPE_MISMATCH!>456<!>
     container.setSimple(<!ARGUMENT_TYPE_MISMATCH!>456<!>)
+}
+
+val x = 456
+
+fun inn(container: Container<in String>, wrapper: Wrapper<Any>) {
+    container.wrapper = <!ASSIGNMENT_TYPE_MISMATCH!>wrapper<!>
+    container.setWrapper(<!ARGUMENT_TYPE_MISMATCH!>wrapper<!>)
+    container.simple = <!ASSIGNMENT_TYPE_MISMATCH!>x<!>
+    container.setSimple(<!ARGUMENT_TYPE_MISMATCH!>x<!>)
 }
 
 fun <T> generic(container: Container<out T>, wrapper: Wrapper<out T>, arg: T) {

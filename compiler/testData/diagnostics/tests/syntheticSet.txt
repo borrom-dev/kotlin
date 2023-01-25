@@ -1,5 +1,6 @@
 package
 
+public val x: kotlin.Int = 456
 public fun bar(/*0*/ container: Container<kotlin.String>, /*1*/ wrapper: Wrapper<kotlin.String>): kotlin.Unit
 public fun baz(/*0*/ container: Container<kotlin.Any>, /*1*/ wrapper: Wrapper<kotlin.String>): kotlin.Unit
 public fun dif(/*0*/ container: Container<kotlin.String>, /*1*/ wrapper: Wrapper<kotlin.Int>): kotlin.Unit
@@ -18,6 +19,13 @@ public open class Container</*0*/ E : kotlin.Any!> {
     public open override /*1*/ /*fake_override*/ fun hashCode(): kotlin.Int
     public open fun setSimple(/*0*/ e: E!): kotlin.Unit
     public open fun setWrapper(/*0*/ wrapper: Wrapper<E!>!): kotlin.Unit
+    public open override /*1*/ /*fake_override*/ fun toString(): kotlin.String
+}
+
+public object O {
+    private constructor O()
+    public open override /*1*/ /*fake_override*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
+    public open override /*1*/ /*fake_override*/ fun hashCode(): kotlin.Int
     public open override /*1*/ /*fake_override*/ fun toString(): kotlin.String
 }
 
