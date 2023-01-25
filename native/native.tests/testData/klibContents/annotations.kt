@@ -1,3 +1,4 @@
+package test
 annotation class AnnoClass
 annotation class AnnoConstructor
 annotation class AnnoConstructorParameter

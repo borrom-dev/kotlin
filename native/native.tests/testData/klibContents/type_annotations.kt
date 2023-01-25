@@ -1,3 +1,4 @@
+package test
 @Retention(AnnotationRetention.RUNTIME)
 @Target(AnnotationTarget.TYPE)
 annotation class AnnoRuntime

@@ -1,3 +1,4 @@
+package test
 annotation class Annotation
 
 fun foo(@Annotation arg: Int) {}

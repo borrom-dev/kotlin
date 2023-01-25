@@ -29,7 +29,7 @@ abstract class AbstractNativeKlibContentsTest : AbstractNativeSimpleTest() {
 
         val kotlinNativeClassLoader = testRunSettings.get<KotlinNativeClassLoader>()
         val klibContents = testCompilationResult.assertSuccess().resultingArtifact.getContents(kotlinNativeClassLoader.classLoader)
-        val klibContentsFiltered = filterContentsOutput(klibContents, linestoExclude = listOf("package <root> {", "}", ""))
+        val klibContentsFiltered = filterContentsOutput(klibContents, linestoExclude = listOf("package test {", "}", ""))
         val expectedContents = File("${testPathFull.canonicalPath.substringBeforeLast(".")}.txt").readText()
         assertEquals(StringUtilRt.convertLineSeparators(expectedContents), StringUtilRt.convertLineSeparators(klibContentsFiltered)) {
             "Test failed. Compilation result was: $testCompilationResult"
