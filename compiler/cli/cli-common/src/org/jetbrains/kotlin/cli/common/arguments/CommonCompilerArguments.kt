@@ -715,8 +715,8 @@ abstract class CommonCompilerArguments : CommonToolArguments() {
                 true ->
                     "Deprecated compiler flag -Xuse-k2 is redundant because of \"-language-version $explicitVersion\" and should be removed"
                 false ->
-                    "Deprecated compiler flag -Xuse-k2 overrides \"-language-version $explicitVersion\" and sets LV 2.0 instead;" +
-                            " please remove -Xuse-k2 and use -language-version to choose between LV $explicitVersion and LV 2.0"
+                    "Deprecated compiler flag -Xuse-k2 overrides \"-language-version $explicitVersion\" to 2.0;" +
+                            " please remove -Xuse-k2 and use -language-version to select either $explicitVersion or 2.0"
                 null ->
                     "Compiler flag -Xuse-k2 is deprecated; please use \"-language-version 2.0\" instead"
             }
