@@ -255,12 +255,7 @@ class FirElementSerializer private constructor(
     }
 
     private fun FirPropertyAccessor.nonSourceAnnotations(session: FirSession, property: FirProperty): List<FirAnnotation> =
-        (this as FirAnnotationContainer).nonSourceAnnotations(session) + property.nonSourceAnnotations(session).filter {
-            val useSiteTarget = it.useSiteTarget
-            useSiteTarget == AnnotationUseSiteTarget.PROPERTY_GETTER && isGetter ||
-                    useSiteTarget == AnnotationUseSiteTarget.PROPERTY_SETTER && isSetter ||
-                    useSiteTarget == AnnotationUseSiteTarget.SETTER_PARAMETER && isSetter
-        }
+        (this as FirAnnotationContainer).nonSourceAnnotations(session)
 
     fun propertyProto(property: FirProperty): ProtoBuf.Property.Builder? = whileAnalysing(session, property) {
         if (!extension.shouldSerializeProperty(property)) return null
