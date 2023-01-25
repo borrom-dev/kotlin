@@ -21,8 +21,8 @@ import org.jetbrains.kotlin.psi.KtProperty
 
 // KtExpression is the appropriate PsiElement type; local variables are used in increments/decrements of dot-qualified expressions.
 object FirLocalVariableTypeParametersSyntaxChecker : FirDeclarationSyntaxChecker<FirProperty, KtExpression>() {
-    override fun isApplicable(element: FirProperty, source: KtSourceElement): Boolean =
-        source.kind !is KtFakeSourceElementKind && element.isLocal
+    override fun isApplicable(element: FirProperty, context: CheckerContext): Boolean =
+        element.source?.kind !is KtFakeSourceElementKind && element.isLocal
 
     override fun checkPsi(
         element: FirProperty,

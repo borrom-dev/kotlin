@@ -78,7 +78,7 @@ abstract class AbstractDerived2 : Interface {
     override <!REDUNDANT_MODALITY_MODIFIER!>open<!> val gav = 13
 }
 // Redundant abstract interface
-abstract interface AbstractInterface
+<!REDUNDANT_MODALITY_MODIFIER!>abstract<!> interface AbstractInterface
 // Redundant final object
 <!REDUNDANT_MODALITY_MODIFIER!>final<!> object FinalObject
 // Open interface

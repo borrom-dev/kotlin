@@ -19,7 +19,7 @@ import org.jetbrains.kotlin.fir.expressions.impl.FirElseIfTrueCondition
 import org.jetbrains.kotlin.lexer.KtTokens
 
 object FirCommaInWhenConditionChecker : FirExpressionSyntaxChecker<FirWhenExpression, PsiElement>() {
-    override fun isApplicable(element: FirWhenExpression, source: KtSourceElement): Boolean {
+    override fun isApplicable(element: FirWhenExpression, context: CheckerContext): Boolean {
         return element.subject == null
     }
 

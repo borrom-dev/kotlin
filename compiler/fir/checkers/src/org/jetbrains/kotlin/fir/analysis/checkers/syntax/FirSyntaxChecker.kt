@@ -27,7 +27,7 @@ interface FirSyntaxChecker<in D : FirElement, P : PsiElement> {
 
     fun checkSyntax(element: D, context: CheckerContext, reporter: DiagnosticReporter) {
         val source = element.source ?: return
-        if (!isApplicable(element, source)) return
+        if (!isApplicable(element, context)) return
         @Suppress("UNCHECKED_CAST")
         when (source) {
             is KtPsiSourceElement -> checkPsi(element, source, source.psi as P, context, reporter)
@@ -35,7 +35,7 @@ interface FirSyntaxChecker<in D : FirElement, P : PsiElement> {
         }
     }
 
-    fun isApplicable(element: D, source: KtSourceElement): Boolean = true
+    fun isApplicable(element: D, context: CheckerContext): Boolean = true
 
     fun checkPsi(element: D, source: KtPsiSourceElement, psi: P, context: CheckerContext, reporter: DiagnosticReporter) {
         checkPsiOrLightTree(element, source, context, reporter)

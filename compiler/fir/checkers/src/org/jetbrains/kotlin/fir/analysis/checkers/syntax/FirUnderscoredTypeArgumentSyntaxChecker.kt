@@ -19,7 +19,7 @@ import org.jetbrains.kotlin.fir.expressions.FirFunctionCall
 import org.jetbrains.kotlin.psi.KtTypeProjection
 
 object FirUnderscoredTypeArgumentSyntaxChecker : FirExpressionSyntaxChecker<FirFunctionCall, PsiElement>() {
-    override fun isApplicable(element: FirFunctionCall, source: KtSourceElement): Boolean =
+    override fun isApplicable(element: FirFunctionCall, context: CheckerContext): Boolean =
         element.typeArguments.isNotEmpty()
 
     override fun checkPsi(

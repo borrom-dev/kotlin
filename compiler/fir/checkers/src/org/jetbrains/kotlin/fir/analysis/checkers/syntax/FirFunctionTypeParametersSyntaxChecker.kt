@@ -20,8 +20,8 @@ import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.psiUtil.startOffset
 
 object FirFunctionTypeParametersSyntaxChecker : FirDeclarationSyntaxChecker<FirSimpleFunction, KtFunction>() {
-    override fun isApplicable(element: FirSimpleFunction, source: KtSourceElement): Boolean =
-        source.kind !is KtFakeSourceElementKind
+    override fun isApplicable(element: FirSimpleFunction, context: CheckerContext): Boolean =
+        element.source?.kind !is KtFakeSourceElementKind
 
     override fun checkPsi(
         element: FirSimpleFunction,

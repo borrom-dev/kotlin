@@ -19,7 +19,7 @@ import org.jetbrains.kotlin.psi.KtTypeParameter
 
 object FirTypeParameterSyntaxChecker : FirDeclarationSyntaxChecker<FirTypeParameter, KtTypeParameter>() {
 
-    override fun isApplicable(element: FirTypeParameter, source: KtSourceElement): Boolean =
+    override fun isApplicable(element: FirTypeParameter, context: CheckerContext): Boolean =
         element.bounds.size >= 2
 
     override fun checkPsi(

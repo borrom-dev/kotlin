@@ -21,7 +21,7 @@ import org.jetbrains.kotlin.psi.KtDelegatedSuperTypeEntry
 
 object FirDelegationInInterfaceSyntaxChecker : FirDeclarationSyntaxChecker<FirRegularClass, KtClass>() {
 
-    override fun isApplicable(element: FirRegularClass, source: KtSourceElement): Boolean = element.isInterface
+    override fun isApplicable(element: FirRegularClass, context: CheckerContext): Boolean = element.isInterface
 
     override fun checkPsi(
         element: FirRegularClass,
