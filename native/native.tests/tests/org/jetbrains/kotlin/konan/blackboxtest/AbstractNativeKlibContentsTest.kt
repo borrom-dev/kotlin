@@ -20,15 +20,14 @@ import java.io.File
 
 @Tag("klib-contents")
 abstract class AbstractNativeKlibContentsTest : AbstractNativeSimpleTest() {
-    private val kotlinNativeClassLoader: KotlinNativeClassLoader get() = testRunSettings.get<KotlinNativeClassLoader>()
 
-    @Synchronized
     protected fun runTest(@TestDataFile testPath: String) {
         val testPathFull = getAbsoluteFile(testPath)
 
         val testCase: TestCase = generateTestCaseWithSingleSource(testPathFull, listOf())
         val testCompilationResult: TestCompilationResult.Success<out KLIB> = compileToLibrary(testCase)
 
+        val kotlinNativeClassLoader = testRunSettings.get<KotlinNativeClassLoader>()
         val klibContents = testCompilationResult.assertSuccess().resultingArtifact.getContents(kotlinNativeClassLoader.classLoader)
         val klibContentsFiltered = filterContentsOutput(klibContents, linestoExclude = listOf("package <root> {", "}", ""))
         val expectedContents = File("${testPathFull.canonicalPath.substringBeforeLast(".")}.txt").readText()
