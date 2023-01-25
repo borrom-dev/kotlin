@@ -1,6 +1,5 @@
 package org.jetbrains.kotlin.fir.analysis
 
-import org.jetbrains.kotlin.KtFakeSourceElementKind
 import org.jetbrains.kotlin.fir.FirElement
 import org.jetbrains.kotlin.fir.analysis.checkers.context.CheckerContext
 import org.jetbrains.kotlin.fir.expressions.FirQualifiedAccessExpression
@@ -13,6 +12,6 @@ import org.jetbrains.kotlin.fir.expressions.FirVariableAssignment
 
 fun FirElement.isValidLhsOfAssignment(context: CheckerContext): Boolean {
     if (this !is FirQualifiedAccessExpression) return false
-    val lastQualified = context.qualifiedAccessOrAnnotationCalls.lastOrNull { it != this } ?: return false
+    val lastQualified = context.qualifiedAccessOrAssignmentsOrAnnotationCalls.lastOrNull { it != this } ?: return false
     return lastQualified is FirVariableAssignment && lastQualified.lValue == this
 }

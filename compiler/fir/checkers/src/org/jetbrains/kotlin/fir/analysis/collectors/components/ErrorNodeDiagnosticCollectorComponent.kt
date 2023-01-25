@@ -60,7 +60,7 @@ class ErrorNodeDiagnosticCollectorComponent(
 
     private fun processErrorReference(reference: FirNamedReference, diagnostic: ConeDiagnostic, context: CheckerContext) {
         val source = reference.source ?: return
-        val qualifiedAccessOrAnnotationCall = context.qualifiedAccessOrAnnotationCalls.lastOrNull()?.takeIf {
+        val qualifiedAccessOrAnnotationCall = context.qualifiedAccessOrAssignmentsOrAnnotationCalls.lastOrNull()?.takeIf {
             // Use the source of the enclosing FirQualifiedAccess if it is exactly the call to the erroneous callee.
             it.calleeReference == reference
         }

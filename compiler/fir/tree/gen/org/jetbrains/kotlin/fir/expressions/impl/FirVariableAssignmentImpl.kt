@@ -14,7 +14,6 @@ import org.jetbrains.kotlin.fir.expressions.FirVariableAssignment
 import org.jetbrains.kotlin.fir.visitors.*
 import org.jetbrains.kotlin.fir.MutableOrEmptyList
 import org.jetbrains.kotlin.fir.builder.toMutableOrEmpty
-import org.jetbrains.kotlin.fir.FirImplementationDetail
 
 /*
  * This file was generated automatically
@@ -22,10 +21,10 @@ import org.jetbrains.kotlin.fir.FirImplementationDetail
  */
 
 internal class FirVariableAssignmentImpl(
+    override val source: KtSourceElement?,
     override var annotations: MutableOrEmptyList<FirAnnotation>,
     override var lValue: FirExpression,
     override var rValue: FirExpression,
-    override var source: KtSourceElement?,
 ) : FirVariableAssignment() {
     override fun <R, D> acceptChildren(visitor: FirVisitor<R, D>, data: D) {
         annotations.forEach { it.accept(visitor, data) }
@@ -61,10 +60,5 @@ internal class FirVariableAssignmentImpl(
 
     override fun replaceLValue(newLValue: FirExpression) {
         lValue = newLValue
-    }
-
-    @FirImplementationDetail
-    override fun replaceSource(newSource: KtSourceElement?) {
-        source = newSource
     }
 }

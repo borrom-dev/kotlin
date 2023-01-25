@@ -613,7 +613,6 @@ object NodeConfigurator : AbstractFieldConfigurator<FirTreeBuilder>(FirTreeBuild
         variableAssignment.configure {
             +field("lValue", expression).withTransform().withReplace()
             +field("rValue", expression).withTransform()
-            +field("source", sourceElementType, nullable = true, withReplace = true)
         }
 
         whenSubjectExpression.configure {

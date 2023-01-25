@@ -394,7 +394,7 @@ open class FirExpressionsResolveTransformer(transformer: FirAbstractBodyResolveT
                 (calleeReference is FirResolvedNamedReference || calleeReference is FirErrorNamedReference) &&
                 functionCall.resultType is FirImplicitTypeRef
             ) {
-                storeTypeFromCallee(functionCall, false)
+                storeTypeFromCallee(functionCall, isLhsOfAssignment = false)
             }
             if (calleeReference is FirNamedReferenceWithCandidate) return functionCall
             if (calleeReference !is FirSimpleNamedReference) {
@@ -738,7 +738,7 @@ open class FirExpressionsResolveTransformer(transformer: FirAbstractBodyResolveT
             } else {
                 typeOperatorCall.transformConversionTypeRef(transformer, ResolutionMode.ContextIndependent)
             }
-        }.transformTypeOperatorCallChildren(data.takeIf { it is ResolutionMode.AssignmentLValue } ?: ResolutionMode.ContextIndependent)
+        }.transformTypeOperatorCallChildren(ResolutionMode.ContextIndependent)
 
         val conversionTypeRef = resolved.conversionTypeRef.withTypeArgumentsForBareType(resolved.argument, typeOperatorCall.operation)
         resolved.transformChildren(object : FirDefaultTransformer<Any?>() {

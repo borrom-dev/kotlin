@@ -9,7 +9,6 @@ import org.jetbrains.kotlin.KtSourceElement
 import org.jetbrains.kotlin.fir.FirElement
 import org.jetbrains.kotlin.fir.FirPureAbstractElement
 import org.jetbrains.kotlin.fir.visitors.*
-import org.jetbrains.kotlin.fir.FirImplementationDetail
 
 /*
  * This file was generated automatically
@@ -17,10 +16,10 @@ import org.jetbrains.kotlin.fir.FirImplementationDetail
  */
 
 abstract class FirVariableAssignment : FirPureAbstractElement(), FirStatement {
+    abstract override val source: KtSourceElement?
     abstract override val annotations: List<FirAnnotation>
     abstract val lValue: FirExpression
     abstract val rValue: FirExpression
-    abstract override val source: KtSourceElement?
 
     override fun <R, D> accept(visitor: FirVisitor<R, D>, data: D): R = visitor.visitVariableAssignment(this, data)
 
@@ -31,9 +30,6 @@ abstract class FirVariableAssignment : FirPureAbstractElement(), FirStatement {
     abstract override fun replaceAnnotations(newAnnotations: List<FirAnnotation>)
 
     abstract fun replaceLValue(newLValue: FirExpression)
-
-    @FirImplementationDetail
-    abstract fun replaceSource(newSource: KtSourceElement?)
 
     abstract override fun <D> transformAnnotations(transformer: FirTransformer<D>, data: D): FirVariableAssignment
 

@@ -103,20 +103,21 @@ class VariableStorageImpl(private val session: FirSession) : VariableStorage() {
     }
 
     private fun createReal(flow: Flow, identifier: Identifier, originalFir: FirElement, stability: PropertyStability): RealVariable {
-        var receiver: FirExpression? = null
-        var isThisReference = false
-        val expression: FirElement? = when (originalFir) {
+        val receiver: FirExpression?
+        val isThisReference: Boolean
+        val expression: FirQualifiedAccessExpression? = when (originalFir) {
             is FirQualifiedAccessExpression -> originalFir
             is FirWhenSubjectExpression -> originalFir.whenRef.value.subject as? FirQualifiedAccessExpression
-            is FirVariableAssignment -> originalFir
+            is FirVariableAssignment -> originalFir.unwrapLValue()
             else -> null
         }
 
-        if (expression is FirQualifiedAccessExpression) {
+        if (expression != null) {
             receiver = expression.explicitReceiver
             isThisReference = expression.calleeReference is FirThisReference
-        } else if (expression is FirVariableAssignment) {
-            receiver = expression.explicitReceiver
+        } else {
+            receiver = null
+            isThisReference = false
         }
 
         val receiverVariable = receiver?.let { getOrCreate(flow, it) }
