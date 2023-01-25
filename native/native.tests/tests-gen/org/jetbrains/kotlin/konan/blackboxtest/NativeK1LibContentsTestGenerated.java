@@ -31,6 +31,12 @@ public class NativeK1LibContentsTestGenerated extends AbstractNativeKlibContents
     }
 
     @Test
+    @TestMetadata("annotations_source_retention.kt")
+    public void testAnnotations_source_retention() throws Exception {
+        runTest("native/native.tests/testData/klibContents/annotations_source_retention.kt");
+    }
+
+    @Test
     @TestMetadata("kt55464_serializeTypeAnnotation.kt")
     public void testKt55464_serializeTypeAnnotation() throws Exception {
         runTest("native/native.tests/testData/klibContents/kt55464_serializeTypeAnnotation.kt");
