@@ -19,7 +19,6 @@ import org.jetbrains.kotlin.name.ClassId
 
 class FirFunctionalTypeKindServiceImpl(private val session: FirSession) : FirFunctionalTypeKindService() {
     private val nonReflectKindsFromExtensions = mutableListOf<FunctionalTypeKind>()
-    private val reflectKindsFromExtensions = mutableListOf<FunctionalTypeKind>()
 
     override val extractor: FunctionalTypeKindExtractor = run {
         val kinds = buildList {
@@ -33,9 +32,8 @@ class FirFunctionalTypeKindServiceImpl(private val session: FirSession) : FirFun
                     require(nonReflectKind.reflectKind() == reflectKind)
                     require(reflectKind.nonReflectKind() == nonReflectKind)
                     add(nonReflectKind)
-                    nonReflectKindsFromExtensions += nonReflectKind
                     add(reflectKind)
-                    reflectKindsFromExtensions += reflectKind
+                    nonReflectKindsFromExtensions += nonReflectKind
                 }
             }
 
