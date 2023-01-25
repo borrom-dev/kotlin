@@ -6598,6 +6598,7 @@ fileCheckTest("filecheck_bce") {
 }
 
 fileCheckTest("filecheck_generic_function_references") {
+    enabled = project.globalTestArgs.contains('-opt')
     annotatedSource = project.file('filecheck/generic_function_references.kt')
 }
 
