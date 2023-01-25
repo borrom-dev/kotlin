@@ -63,9 +63,8 @@ object FirJavaVisibilityChecker : FirVisibilityChecker() {
         containingDeclarations: List<FirDeclaration>,
         session: FirSession
     ): Boolean {
-        val declaringClass = containingDeclarations.lastIsInstanceOrNull<FirClass>() ?: return false
         val containingClassLookupTag = this.containingClassLookupTag() ?: return false
-        return declaringClass.isSubclassOf(containingClassLookupTag, session, false)
+        return containingDeclarations.any { it is FirClass && it.isSubclassOf(containingClassLookupTag, session, false)  }
     }
 
     override fun platformOverrideVisibilityCheck(
