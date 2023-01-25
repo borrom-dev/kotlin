@@ -49,4 +49,10 @@ public class NativeK2LibContentsTestGenerated extends AbstractNativeKlibContents
     public void testKt56018_value_parameters_annotations() throws Exception {
         runTest("native/native.tests/testData/klibContents/kt56018_value_parameters_annotations.kt");
     }
+
+    @Test
+    @TestMetadata("type_annotations.kt")
+    public void testType_annotations() throws Exception {
+        runTest("native/native.tests/testData/klibContents/type_annotations.kt");
+    }
 }
